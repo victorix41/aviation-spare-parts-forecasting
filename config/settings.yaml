@@ -1,0 +1,44 @@
+project:
+  name: aviation-spare-parts-forecasting
+  version: 0.1.0
+  environment: development
+
+paths:
+  raw_data: data/raw
+  cleaned_data: data/cleaned
+  synthetic_data: data/synthetic
+  processed_data: data/processed
+  database: database/aviation_spares.duckdb
+  forecasts: outputs/forecasts
+  reports: outputs/reports
+  exports: outputs/exports
+
+data:
+  source_workbook: Spare Part Listing.xlsx
+  issue_history_workbook: Aviation_Spare_Parts_Demand_Forecasting_Management_Workbook_Version_3.xlsx
+  as_of_date: 2026-08-04
+  date_format: "%Y-%m-%d"
+  currency: USD
+
+forecasting:
+  history_months: 36
+  forecast_horizons:
+    - 3
+    - 6
+    - 12
+  minimum_observations: 6
+  default_method: croston_sba
+
+inventory:
+  lead_time_default_days: 45
+  service_level_default: 0.95
+  safety_stock_months:
+    critical: 4
+    high: 3
+    medium: 2
+    low: 1
+
+governance:
+  allow_automatic_purchase_orders: false
+  require_human_approval: true
+  synthetic_data_must_be_labelled: true

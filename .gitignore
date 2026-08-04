@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Virtual and Conda environments
+.venv/
+venv/
+env/
+.env
+*.env
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+*.identifier
+
+# Database files
+database/*.duckdb
+database/*.db
+database/*.wal
+
+# Raw, generated and sensitive data
+data/raw/*
+data/cleaned/*
+data/synthetic/*
+data/processed/*
+outputs/forecasts/*
+outputs/reports/*
+outputs/exports/*
+
+# Preserve directories
+!data/raw/.gitkeep
+!data/cleaned/.gitkeep
+!data/synthetic/.gitkeep
+!data/processed/.gitkeep
+!outputs/forecasts/.gitkeep
+!outputs/reports/.gitkeep
+!outputs/exports/.gitkeep
+
+# Streamlit secrets
+.streamlit/secrets.toml

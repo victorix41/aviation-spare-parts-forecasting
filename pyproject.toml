@@ -1,0 +1,18 @@
+[project]
+name = "aviation-spare-parts-forecasting"
+version = "0.1.0"
+description = "Aviation spare-parts demand forecasting, inventory optimisation and agentic AI decision-support system."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]
