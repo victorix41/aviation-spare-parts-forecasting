@@ -55,6 +55,33 @@ analytics:
     adi_threshold: 1.32
     cv_squared_threshold: 0.49
 
+forecast_models:
+  forecast_horizon_months: 12
+
+  naive:
+    enabled: true
+
+  moving_average:
+    enabled: true
+    window: 3
+
+  weighted_moving_average:
+    enabled: true
+    weights:
+      - 0.20
+      - 0.30
+      - 0.50
+
+  exponential_smoothing:
+    enabled: true
+    smoothing_level: 0.30
+
+  croston_sba:
+    enabled: true
+    alpha: 0.10
+
+  minimum_history_months: 6
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
