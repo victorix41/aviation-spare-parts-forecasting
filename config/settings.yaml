@@ -1,6 +1,6 @@
 project:
   name: aviation-spare-parts-forecasting
-  version: 0.1.0
+  version: 0.2.0
   environment: development
 
 paths:
@@ -14,8 +14,6 @@ paths:
   exports: outputs/exports
 
 data:
-  source_workbook: Spare Part Listing.xlsx
-  issue_history_workbook: Aviation_Spare_Parts_Demand_Forecasting_Management_Workbook_Version_3.xlsx
   as_of_date: 2026-08-04
   date_format: "%Y-%m-%d"
   currency: USD

@@ -1,0 +1,125 @@
+workbook:
+  filename: aviation_spare_parts_v3.xlsx
+
+datasets:
+  inventory:
+    sheet_name: Source_Listing_V3
+    output_table: inventory
+    required: true
+    column_mappings:
+      no: record_number
+      description: description
+      part_number: part_number
+      serial_number: serial_number
+      unit_price_usd: unit_price_usd
+      purchased_quantity: purchased_quantity
+      purchase_order_number: purchase_order_number
+      total_price: total_price_usd
+      purchase_order_date_date_month_year: purchase_order_date
+      delivery_order_number: delivery_order_number
+      delivery_order_date_date_month_year: delivery_order_date
+      batch_number: batch_number
+      repair_order_number: repair_order_number
+      top_assembly_part_number: top_assembly_part_number
+      top_assembly_serial_number: top_assembly_serial_number
+      quantity_issued: quantity_issued
+      date_issued: date_issued
+      balance_quantity: balance_quantity
+      repair_order_status: repair_order_status
+      record_classification: record_classification
+
+    required_columns:
+      - part_number
+      - description
+      - unit_price_usd
+      - purchased_quantity
+      - quantity_issued
+      - balance_quantity
+
+  issue_history:
+    sheet_name: Issue_History_3000
+    output_table: issue_history
+    required: true
+    column_mappings:
+      issue_transaction_id: transaction_id
+      repair_order: repair_order
+      part_id: part_id
+      part_number: part_number
+      description: description
+      issue_date: issue_date
+      quantity_issued: quantity_issued
+      unit_price_usd: unit_price_usd
+      issued_value_usd: issued_value_usd
+      top_assembly_part_number: top_assembly_part_number
+      top_assembly_serial_number: top_assembly_serial_number
+      issue_type: issue_type
+      repair_order_status: repair_order_status
+      abc_class: abc_class
+      engineering_criticality: engineering_criticality
+      data_classification: data_classification
+
+    required_columns:
+      - transaction_id
+      - repair_order
+      - part_number
+      - issue_date
+      - quantity_issued
+      - repair_order_status
+
+  repair_orders:
+    sheet_name: Repair_Order_Master
+    output_table: repair_orders
+    required: true
+    column_mappings:
+      repair_order: repair_order
+      part_id: part_id
+      part_number: part_number
+      description: description
+      repair_order_open_date: repair_order_open_date
+      repair_order_completion_date: repair_order_completion_date
+      repair_order_status: repair_order_status
+      top_assembly_part_number: top_assembly_part_number
+      top_assembly_serial_number: top_assembly_serial_number
+      maintenance_type: maintenance_type
+      operational_priority: operational_priority
+      data_classification: data_classification
+
+    required_columns:
+      - repair_order
+      - part_number
+      - repair_order_status
+
+  forecast_summary:
+    sheet_name: Forecast_Summary
+    output_table: forecast_summary
+    required: true
+    column_mappings:
+      part_id: part_id
+      part_number: part_number
+      description: description
+      abc_class: abc_class
+      engineering_criticality: engineering_criticality
+      36m_issued_qty: issued_quantity_36m
+      demand_events: demand_events
+      average_monthly_demand: average_monthly_demand
+      demand_pattern: demand_pattern
+      3m_forecast: forecast_3m
+      6m_forecast: forecast_6m
+      12m_forecast: forecast_12m
+      safety_stock: safety_stock
+      reorder_point: reorder_point
+      closing_balance: current_balance
+      recommended_order_qty: recommended_order_quantity
+      stockout_risk: stockout_risk
+      inventory_value_usd: inventory_value_usd
+      12m_procurement_budget_usd: procurement_budget_12m_usd
+      forecast_confidence: forecast_confidence
+      forecast_method: forecast_method
+      data_classification: data_classification
+
+    required_columns:
+      - part_number
+      - current_balance
+      - forecast_12m
+      - recommended_order_quantity
+      - stockout_risk
