@@ -208,6 +208,59 @@ agentic_ai:
     role_advisory_summary: role_advisory_summary
     assurance_findings: agent_assurance_findings
 
+dashboard:
+  title: Aviation Spare Parts Demand Forecasting
+  subtitle: Forecasting, Inventory Optimisation and Agentic AI Decision Support
+
+  page:
+    layout: wide
+    sidebar_state: expanded
+
+  display:
+    currency: USD
+    currency_decimals: 2
+    quantity_decimals: 0
+    maximum_table_rows: 100
+    top_recommendations: 20
+
+  refresh:
+    cache_seconds: 60
+
+  risk_order:
+    - Critical
+    - High
+    - Medium
+    - Low
+
+  risk_colours:
+    Critical: "#C00000"
+    High: "#ED7D31"
+    Medium: "#FFC000"
+    Low: "#70AD47"
+
+  readiness:
+    critical_parts_red_threshold: 5
+    critical_parts_amber_threshold: 1
+    high_risk_parts_red_threshold: 30
+    high_risk_parts_amber_threshold: 10
+    procurement_exposure_red_usd: 1000000
+    procurement_exposure_amber_usd: 500000
+
+  drilldown:
+    enabled: true
+    maximum_parts: 100
+
+  styling:
+    compact_layout: true
+    enlarge_kpi_values: true
+
+  governance:
+    read_only: true
+    allow_purchase_order_creation: false
+    allow_inventory_updates: false
+    allow_financial_approval: false
+    require_human_approval: true
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
