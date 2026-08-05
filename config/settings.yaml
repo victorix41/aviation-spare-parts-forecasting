@@ -151,6 +151,63 @@ inventory_optimisation:
     procurement_recommendations: procurement_recommendations
     risk_summary: inventory_risk_summary
 
+agentic_ai:
+  implementation_mode: deterministic_advisory
+
+  governance:
+    allow_database_writes: false
+    allow_inventory_changes: false
+    allow_purchase_order_creation: false
+    allow_financial_approval: false
+    require_human_approval: true
+    require_evidence: true
+    require_final_assurance: true
+
+  confidence:
+    high_forecast_confidence:
+      - High
+      - Medium
+    acceptable_forecast_confidence:
+      - High
+      - Medium
+      - Low
+
+  thresholds:
+    executive:
+      critical_parts_trigger: 1
+      high_risk_parts_trigger: 10
+      procurement_value_trigger_usd: 500000
+
+    procurement:
+      urgent_priority_maximum: 2
+      high_value_order_usd: 50000
+      long_lead_time_days: 90
+
+    finance:
+      high_total_procurement_value_usd: 1000000
+      high_single_part_value_usd: 100000
+      low_confidence_value_review_usd: 25000
+
+    engineering:
+      criticality_levels:
+        - Critical
+        - High
+      low_confidence_requires_review: true
+
+    operations:
+      immediate_stockout_months: 0.5
+      near_term_stockout_months: 1.5
+
+    quality:
+      require_human_approval_for_all_orders: true
+      flag_missing_evidence: true
+      flag_low_confidence_orders: true
+
+  output_tables:
+    agent_recommendations: agent_recommendations
+    role_advisory_summary: role_advisory_summary
+    assurance_findings: agent_assurance_findings
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
