@@ -36,6 +36,25 @@ inventory:
     medium: 2
     low: 1
 
+analytics:
+  monthly_frequency: MS
+
+  demand_history:
+    start_date: 2023-08-01
+    end_date: 2026-07-31
+
+  abc_thresholds:
+    class_a_cumulative_percent: 0.80
+    class_b_cumulative_percent: 0.95
+
+  xyz_thresholds:
+    class_x_cv: 0.50
+    class_y_cv: 1.00
+
+  intermittent_demand:
+    adi_threshold: 1.32
+    cv_squared_threshold: 0.49
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
