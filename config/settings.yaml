@@ -82,6 +82,34 @@ forecast_models:
 
   minimum_history_months: 6
 
+model_selection:
+  validation_months: 6
+  minimum_training_months: 12
+
+  primary_metric: wape
+
+  metrics:
+    - mae
+    - rmse
+    - wape
+    - bias
+
+  tie_break_order:
+    - croston_sba
+    - exponential_smoothing
+    - weighted_moving_average
+    - moving_average
+    - naive
+
+  zero_actual_policy: absolute_error
+
+  final_forecast_horizon_months: 12
+
+  output_tables:
+    backtest_results: forecast_backtest_results
+    selected_models: selected_forecast_models
+    final_forecasts: final_part_forecasts
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
