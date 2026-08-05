@@ -110,6 +110,47 @@ model_selection:
     selected_models: selected_forecast_models
     final_forecasts: final_part_forecasts
 
+inventory_optimisation:
+  days_per_month: 30.4375
+  default_lead_time_days: 45
+  minimum_lead_time_days: 1
+
+  service_levels:
+    critical: 0.99
+    high: 0.97
+    medium: 0.95
+    low: 0.90
+    unspecified: 0.95
+
+  eoq:
+    enabled: true
+    ordering_cost_usd: 150.00
+    annual_holding_rate: 0.25
+
+  target_stock:
+    planning_horizon_months: 12
+    include_safety_stock: true
+
+  risk_thresholds:
+    critical_months_cover: 0.0
+    high_months_cover: 1.5
+    medium_months_cover: 3.0
+
+  procurement_priority:
+    critical: 1
+    high: 2
+    medium: 3
+    low: 4
+
+  governance:
+    automatic_purchase_orders: false
+    human_approval_required: true
+
+  output_tables:
+    optimisation_results: inventory_optimisation_results
+    procurement_recommendations: procurement_recommendations
+    risk_summary: inventory_risk_summary
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
