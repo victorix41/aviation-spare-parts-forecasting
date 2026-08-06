@@ -1010,3 +1010,251 @@ class DashboardRepository:
                 procurement_value_usd DESC
             """
         )
+    def load_latest_pipeline_run(
+        self,
+    ) -> pd.DataFrame:
+        """Load the most recently completed pipeline run."""
+
+        if not self.table_exists(
+            "pipeline_runs"
+        ):
+            return pd.DataFrame()
+
+        return self.query(
+            """
+            SELECT
+                pipeline_run_id,
+                started_at,
+                completed_at,
+                duration_seconds,
+                overall_status,
+                successful_stage_count,
+                failed_stage_count
+            FROM pipeline_runs
+            ORDER BY completed_at DESC
+            LIMIT 1
+            """
+        )
+
+    def load_latest_pipeline_stages(
+        self,
+    ) -> pd.DataFrame:
+        """Load stage results from the latest pipeline run."""
+
+        required_tables = [
+            "pipeline_runs",
+            "pipeline_stage_runs",
+        ]
+
+        if not all(
+            self.table_exists(table_name)
+            for table_name in required_tables
+        ):
+            return pd.DataFrame()
+
+        return self.query(
+            """
+            WITH latest_run AS (
+                SELECT pipeline_run_id
+                FROM pipeline_runs
+                ORDER BY completed_at DESC
+                LIMIT 1
+            )
+            SELECT
+                stage_name,
+                module_name,
+                status,
+                started_at,
+                completed_at,
+                duration_seconds,
+                return_code,
+                error_message
+            FROM pipeline_stage_runs
+            WHERE pipeline_run_id = (
+                SELECT pipeline_run_id
+                FROM latest_run
+            )
+            ORDER BY started_at
+            """
+        )
+
+    def load_recent_pipeline_runs(
+        self,
+        limit: int = 10,
+    ) -> pd.DataFrame:
+        """Load recent pipeline execution history."""
+
+        if not self.table_exists(
+            "pipeline_runs"
+        ):
+            return pd.DataFrame()
+
+        return self.query(
+            """
+            SELECT
+                pipeline_run_id,
+                started_at,
+                completed_at,
+                duration_seconds,
+                overall_status,
+                successful_stage_count,
+                failed_stage_count
+            FROM pipeline_runs
+            ORDER BY completed_at DESC
+            LIMIT ?
+            """,
+            [
+                int(limit),
+            ],
+        )
+
+    def load_pipeline_kpis(
+        self,
+    ) -> dict[str, object]:
+        """Load pipeline-monitoring KPI values."""
+
+        latest_run = (
+            self.load_latest_pipeline_run()
+        )
+
+        latest_stages = (
+            self.load_latest_pipeline_stages()
+        )
+
+        if latest_run.empty:
+            return {
+                "pipeline_run_id": None,
+                "overall_status": "Unknown",
+                "duration_seconds": 0.0,
+                "successful_stage_count": 0,
+                "failed_stage_count": 0,
+                "completed_at": None,
+                "slowest_stage": None,
+                "slowest_stage_seconds": 0.0,
+            }
+
+        run_row = latest_run.iloc[0]
+
+        if latest_stages.empty:
+            slowest_stage = None
+            slowest_stage_seconds = 0.0
+        else:
+            slowest_row = (
+                latest_stages.sort_values(
+                    "duration_seconds",
+                    ascending=False,
+                )
+                .iloc[0]
+            )
+
+            slowest_stage = str(
+                slowest_row["stage_name"]
+            )
+
+            slowest_stage_seconds = float(
+                slowest_row[
+                    "duration_seconds"
+                ]
+                or 0.0
+            )
+
+        return {
+            "pipeline_run_id": str(
+                run_row["pipeline_run_id"]
+            ),
+            "overall_status": str(
+                run_row["overall_status"]
+            ),
+            "duration_seconds": float(
+                run_row["duration_seconds"]
+                or 0.0
+            ),
+            "successful_stage_count": int(
+                run_row[
+                    "successful_stage_count"
+                ]
+                or 0
+            ),
+            "failed_stage_count": int(
+                run_row[
+                    "failed_stage_count"
+                ]
+                or 0
+            ),
+            "completed_at": (
+                run_row["completed_at"]
+            ),
+            "slowest_stage": slowest_stage,
+            "slowest_stage_seconds": (
+                slowest_stage_seconds
+            ),
+        }
+
+    def load_pipeline_table_status(
+        self,
+    ) -> pd.DataFrame:
+        """Load pipeline source and output table availability."""
+
+        table_names = [
+            "inventory",
+            "issue_history",
+            "repair_orders",
+            "forecast_summary",
+            "monthly_demand",
+            "demand_metrics",
+            "forecast_backtest_results",
+            "selected_forecast_models",
+            "final_part_forecasts",
+            "inventory_optimisation_results",
+            "procurement_recommendations",
+            "agent_recommendations",
+            "agent_assurance_findings",
+            "pipeline_runs",
+            "pipeline_stage_runs",
+        ]
+
+        rows: list[dict[str, object]] = []
+
+        for table_name in table_names:
+            exists = self.table_exists(
+                table_name
+            )
+
+            if not exists:
+                rows.append(
+                    {
+                        "table_name": table_name,
+                        "row_count": 0,
+                        "status": "Missing",
+                    }
+                )
+                continue
+
+            count_result = self.query(
+                f"""
+                SELECT COUNT(*) AS row_count
+                FROM "{table_name}"
+                """
+            )
+
+            row_count = int(
+                count_result.iloc[0][
+                    "row_count"
+                ]
+            )
+
+            rows.append(
+                {
+                    "table_name": table_name,
+                    "row_count": row_count,
+                    "status": (
+                        "Available"
+                        if row_count > 0
+                        else "Empty"
+                    ),
+                }
+            )
+
+        return pd.DataFrame(
+            rows
+        )

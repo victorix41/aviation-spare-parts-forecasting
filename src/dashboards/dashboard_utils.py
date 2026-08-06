@@ -563,3 +563,140 @@ def create_stock_cover_chart(
     )
 
     return figure
+
+def create_pipeline_stage_chart(
+    dataframe: pd.DataFrame,
+    status_colours: dict[str, str],
+):
+    """Create a pipeline-stage duration chart."""
+
+    prepared = dataframe.copy()
+
+    figure = px.bar(
+        prepared,
+        x="stage_name",
+        y="duration_seconds",
+        color="status",
+        text="duration_seconds",
+        color_discrete_map=status_colours,
+        labels={
+            "stage_name": "Pipeline stage",
+            "duration_seconds": "Duration (seconds)",
+            "status": "Status",
+        },
+        title="Latest Pipeline Stage Durations",
+    )
+
+    figure.update_traces(
+        texttemplate="%{text:.2f}s",
+        textposition="outside",
+    )
+
+    figure.update_layout(
+        xaxis_title=None,
+        yaxis_title="Seconds",
+        legend_title="Status",
+        margin={
+            "l": 20,
+            "r": 20,
+            "t": 60,
+            "b": 80,
+        },
+    )
+
+    return figure
+
+def create_pipeline_history_chart(
+    dataframe: pd.DataFrame,
+    status_colours: dict[str, str],
+):
+    """Create recent pipeline duration history."""
+
+    prepared = dataframe.copy()
+
+    prepared["completed_at"] = pd.to_datetime(
+        prepared["completed_at"],
+        errors="coerce",
+    )
+
+    prepared = prepared.sort_values(
+        "completed_at"
+    )
+
+    figure = px.bar(
+        prepared,
+        x="completed_at",
+        y="duration_seconds",
+        color="overall_status",
+        color_discrete_map=status_colours,
+        hover_data=[
+            "pipeline_run_id",
+            "successful_stage_count",
+            "failed_stage_count",
+        ],
+        labels={
+            "completed_at": "Completed",
+            "duration_seconds": "Duration (seconds)",
+            "overall_status": "Status",
+        },
+        title="Recent Pipeline Execution History",
+    )
+
+    figure.update_layout(
+        xaxis_title=None,
+        yaxis_title="Seconds",
+        legend_title="Status",
+        margin={
+            "l": 20,
+            "r": 20,
+            "t": 60,
+            "b": 60,
+        },
+    )
+
+    return figure
+
+def determine_pipeline_freshness(
+    *,
+    completed_at: object,
+    stale_after_hours: float,
+) -> tuple[str, float]:
+    """Determine whether the latest pipeline run is stale."""
+
+    completed_timestamp = pd.to_datetime(
+        completed_at,
+        errors="coerce",
+        utc=True,
+    )
+
+    if pd.isna(
+        completed_timestamp
+    ):
+        return (
+            "Unknown",
+            0.0,
+        )
+
+    current_timestamp = pd.Timestamp.now(
+        tz="UTC"
+    )
+
+    age_hours = float(
+        (
+            current_timestamp
+            - completed_timestamp
+        ).total_seconds()
+        / 3600
+    )
+
+    status = (
+        "Stale"
+        if age_hours
+        > float(stale_after_hours)
+        else "Current"
+    )
+
+    return (
+        status,
+        age_hours,
+    )

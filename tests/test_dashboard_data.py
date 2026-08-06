@@ -1,12 +1,14 @@
 """Tests for dashboard data access and formatting."""
 
 from pathlib import Path
+from datetime import UTC, datetime, timedelta
 
 import duckdb
 import pandas as pd
 import pytest
 
 from src.dashboards.dashboard_utils import (
+    determine_pipeline_freshness,
     determine_readiness_status,
     format_currency,
     format_quantity,
@@ -16,6 +18,7 @@ from src.dashboards.data_access import (
     DashboardDataError,
     DashboardRepository,
 )
+from datetime import UTC, datetime, timedelta
 
 
 def create_dashboard_database(
@@ -322,3 +325,36 @@ def test_readiness_status_is_stable() -> None:
 
     assert status == "Stable"
     assert icon == "🟢"
+
+def test_pipeline_freshness_is_current() -> None:
+    """A recent pipeline completion should be current."""
+
+    completed_at = (
+        datetime.now(UTC)
+        - timedelta(hours=2)
+    )
+
+    status, age_hours = determine_pipeline_freshness(
+        completed_at=completed_at,
+        stale_after_hours=24,
+    )
+
+    assert status == "Current"
+    assert 1.0 < age_hours < 3.0
+
+
+def test_pipeline_freshness_is_stale() -> None:
+    """An old pipeline completion should be stale."""
+
+    completed_at = (
+        datetime.now(UTC)
+        - timedelta(hours=30)
+    )
+
+    status, age_hours = determine_pipeline_freshness(
+        completed_at=completed_at,
+        stale_after_hours=24,
+    )
+
+    assert status == "Stale"
+    assert age_hours > 24

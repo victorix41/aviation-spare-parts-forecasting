@@ -261,6 +261,18 @@ dashboard:
     allow_financial_approval: false
     require_human_approval: true
 
+  pipeline_monitoring:
+    recent_run_limit: 10
+    stale_after_hours: 24
+    warning_duration_seconds: 30
+    critical_duration_seconds: 60
+
+    status_colours:
+      Passed: "#70AD47"
+      Failed: "#C00000"
+      Running: "#5B9BD5"
+      Unknown: "#A5A5A5"
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true

@@ -20,6 +20,9 @@ from src.dashboards.procurement_dashboard import (
 from src.dashboards.quality_dashboard import (
     render_quality_dashboard,
 )
+from src.dashboards.pipeline_dashboard import (
+    render_pipeline_dashboard,
+)
 
 import streamlit as st
 import yaml
@@ -98,6 +101,7 @@ def render_sidebar() -> str:
             "Engineering Manager",
             "Operations Manager",
             "Quality Manager",
+            "Pipeline Monitor",
         ],
         index=0,
     )
@@ -200,6 +204,12 @@ def main() -> None:
                 repository,
                 dashboard_settings,
             )
+
+        elif selected_page == "Pipeline Monitor":
+            render_pipeline_dashboard(
+                repository,
+                dashboard_settings,
+        )
 
     except DashboardDataError as exc:
         st.error(
