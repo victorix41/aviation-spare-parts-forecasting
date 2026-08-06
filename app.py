@@ -24,8 +24,9 @@ from src.dashboards.pipeline_dashboard import (
     render_pipeline_dashboard,
 )
 
-import streamlit as st
-import yaml
+from src.dashboards.report_download_dashboard import (
+    render_report_download_dashboard,
+)
 
 from src.dashboards.data_access import (
     DashboardDataError,
@@ -34,6 +35,13 @@ from src.dashboards.data_access import (
 from src.dashboards.executive_dashboard import (
     render_executive_dashboard,
 )
+
+from src.dashboards.dashboard_utils import (
+    apply_dashboard_styling,
+)
+
+import streamlit as st
+import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -93,18 +101,20 @@ def render_sidebar() -> str:
     )
 
     selected_page = st.sidebar.radio(
-        "Management view",
-        options=[
-            "Accountable Manager",
-            "Procurement Manager",
-            "Finance Manager",
-            "Engineering Manager",
-            "Operations Manager",
-            "Quality Manager",
-            "Pipeline Monitor",
-        ],
-        index=0,
-    )
+    "Management view",
+    options=[
+        "Accountable Manager",
+        "Procurement Manager",
+        "Finance Manager",
+        "Engineering Manager",
+        "Operations Manager",
+        "Quality Manager",
+        "Pipeline Monitor",
+        "Management Report",
+    ],
+    index=0,
+    key="management_view_navigation",
+)
 
     st.sidebar.divider()
 
@@ -145,35 +155,42 @@ def render_sidebar() -> str:
 
 
 def main() -> None:
-    """Run the management dashboard."""
+    """Run the Streamlit application."""
+
+    settings = load_settings()
+
+    dashboard_settings = settings[
+        "dashboard"
+    ]
+
+    configure_page(
+        dashboard_settings
+    )
+
+    apply_dashboard_styling()
+
+    selected_page = render_sidebar()
+
+    database_path = (
+        PROJECT_ROOT
+        / settings["paths"]["database"]
+    )
+
+    reports_directory = (
+        PROJECT_ROOT
+        / settings["paths"]["reports"]
+    )
 
     try:
-        settings = load_settings()
-
-        dashboard_settings = settings[
-            "dashboard"
-        ]
-
-        configure_page(
-            dashboard_settings
-        )
-
-        database_path = (
-            PROJECT_ROOT
-            / settings["paths"]["database"]
-        )
-
         repository = DashboardRepository(
             database_path
         )
 
-        selected_page = render_sidebar()
-
         if selected_page == "Accountable Manager":
             render_executive_dashboard(
-            repository,
-            dashboard_settings,
-        )
+                repository,
+                dashboard_settings,
+            )
 
         elif selected_page == "Procurement Manager":
             render_procurement_dashboard(
@@ -209,29 +226,31 @@ def main() -> None:
             render_pipeline_dashboard(
                 repository,
                 dashboard_settings,
-        )
+            )
+
+        elif selected_page == "Management Report":
+            render_report_download_dashboard(
+                repository=repository,
+                database_path=database_path,
+                reports_directory=reports_directory,
+                report_settings=settings[
+                    "reporting"
+                ][
+                    "management_report"
+                ],
+                download_settings=dashboard_settings[
+                    "report_download"
+                ],
+            )
 
     except DashboardDataError as exc:
         st.error(
-            str(exc)
-        )
-
-        st.code(
-            "\n".join(
-                [
-                    "python -m src.data.ingestion_pipeline",
-                    "python -m src.analytics.run_demand_analysis",
-                    "python -m src.forecasting.run_model_selection",
-                    "python -m src.optimisation.run_inventory_optimisation",
-                    "python -m src.agents.run_advisory_engine",
-                ]
-            ),
-            language="bash",
+            f"Dashboard failed to start: {exc}"
         )
 
     except Exception as exc:
         st.error(
-            f"Dashboard failed to start: {exc}"
+            f"Unexpected application error: {exc}"
         )
 
 

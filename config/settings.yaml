@@ -273,6 +273,14 @@ dashboard:
       Running: "#5B9BD5"
       Unknown: "#A5A5A5"
 
+  report_download:
+    enabled: true
+    require_successful_pipeline: true
+    warn_when_stale: true
+    stale_after_hours: 24
+    download_label: Download Management Report
+    generate_label: Generate Latest Management Report
+
 reporting:
   management_report:
     enabled: true

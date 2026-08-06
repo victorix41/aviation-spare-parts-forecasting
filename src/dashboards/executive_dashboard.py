@@ -5,7 +5,6 @@ from __future__ import annotations
 import streamlit as st
 
 from src.dashboards.dashboard_utils import (
-    apply_dashboard_styling,
     create_advisory_priority_chart,
     create_forecast_confidence_chart,
     create_model_distribution_chart,
@@ -489,8 +488,6 @@ def render_executive_dashboard(
     settings: dict,
 ) -> None:
     """Render the Accountable Manager dashboard."""
-
-    apply_dashboard_styling()
 
     st.title(
         "Accountable Manager Dashboard"

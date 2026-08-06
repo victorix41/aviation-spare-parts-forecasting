@@ -441,39 +441,44 @@ def determine_readiness_status(
     )
 
 def apply_dashboard_styling() -> None:
-    """Apply executive-dashboard presentation styling."""
+    """Apply consistent full-width dashboard styling."""
 
     st.markdown(
         """
         <style>
+        [data-testid="stMainBlockContainer"] {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding-top: 1.5rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
+
+        .main .block-container,
+        section.main > div.block-container,
         .block-container {
-            padding-top: 1.4rem;
-            padding-bottom: 2rem;
+            max-width: 100% !important;
+            width: 100% !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
         }
 
-        div[data-testid="stMetric"] {
-            background-color: #F7F9FC;
-            border: 1px solid #E1E6ED;
-            border-radius: 8px;
-            padding: 12px 14px;
+        [data-testid="stPlotlyChart"],
+        [data-testid="stDataFrame"] {
+            width: 100% !important;
         }
 
-        div[data-testid="stMetricValue"] {
+        [data-testid="stMetric"] {
+            border: 1px solid #E2E8F0;
+            border-radius: 0.6rem;
+            padding: 0.8rem;
+            background-color: #F8FAFC;
+            min-height: 105px;
+        }
+
+        [data-testid="stMetricValue"] {
             font-size: 1.65rem;
-            font-weight: 650;
-        }
-
-        div[data-testid="stMetricLabel"] {
-            font-size: 0.88rem;
-            font-weight: 600;
-        }
-
-        h1 {
-            margin-bottom: 0.2rem;
-        }
-
-        h2, h3 {
-            margin-top: 0.6rem;
         }
         </style>
         """,
