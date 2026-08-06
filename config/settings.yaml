@@ -273,6 +273,26 @@ dashboard:
       Running: "#5B9BD5"
       Unknown: "#A5A5A5"
 
+reporting:
+  management_report:
+    enabled: true
+    output_filename: aviation_spare_parts_management_report.xlsx
+    maximum_detail_rows: 500
+    include_pipeline_audit: true
+    include_agent_advisories: true
+
+    title: Aviation Spare Parts Demand Forecasting
+    subtitle: Management Forecasting, Inventory and Agentic Advisory Report
+
+    colours:
+      primary: "1F4E78"
+      secondary: "D9EAF7"
+      critical: "C00000"
+      high: "ED7D31"
+      medium: "FFC000"
+      low: "70AD47"
+      header_text: "FFFFFF"
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
