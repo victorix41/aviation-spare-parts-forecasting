@@ -37,7 +37,10 @@ def load_settings() -> dict[str, Any]:
     ) as file:
         settings = yaml.safe_load(file)
 
-    if not isinstance(settings, dict):
+    if not isinstance(
+        settings,
+        dict,
+    ):
         raise ValueError(
             "Settings must be a YAML mapping."
         )
@@ -51,8 +54,9 @@ def load_source_tables(
     pd.DataFrame,
     pd.DataFrame,
     pd.DataFrame,
+    pd.DataFrame,
 ]:
-    """Load source tables needed for optimisation."""
+    """Load source tables required for optimisation."""
 
     if not database_path.is_file():
         raise FileNotFoundError(
@@ -64,21 +68,38 @@ def load_source_tables(
         read_only=True,
     ) as connection:
         inventory = connection.execute(
-            "SELECT * FROM inventory"
+            """
+            SELECT *
+            FROM inventory
+            """
         ).fetchdf()
 
         demand_metrics = connection.execute(
-            "SELECT * FROM demand_metrics"
+            """
+            SELECT *
+            FROM demand_metrics
+            """
         ).fetchdf()
 
         final_forecasts = connection.execute(
-            "SELECT * FROM final_part_forecasts"
+            """
+            SELECT *
+            FROM final_part_forecasts
+            """
+        ).fetchdf()
+
+        forecast_summary = connection.execute(
+            """
+            SELECT *
+            FROM forecast_summary
+            """
         ).fetchdf()
 
     return (
         inventory,
         demand_metrics,
         final_forecasts,
+        forecast_summary,
     )
 
 
@@ -87,7 +108,7 @@ def write_table(
     table_name: str,
     dataframe: pd.DataFrame,
 ) -> None:
-    """Write one dataframe to DuckDB."""
+    """Write one DataFrame to DuckDB."""
 
     temporary_name = (
         f"temporary_{table_name}"
@@ -117,7 +138,7 @@ def write_table(
 def create_risk_summary(
     optimisation_results: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Create a management-level inventory risk summary."""
+    """Create a management-level inventory-risk summary."""
 
     return (
         optimisation_results.groupby(
@@ -181,6 +202,7 @@ def main() -> None:
         inventory,
         demand_metrics,
         final_forecasts,
+        forecast_summary,
     ) = load_source_tables(
         database_path
     )
@@ -190,6 +212,7 @@ def main() -> None:
             inventory=inventory,
             demand_metrics=demand_metrics,
             final_forecasts=final_forecasts,
+            forecast_summary=forecast_summary,
             settings=optimisation_settings,
         )
     )
@@ -271,7 +294,9 @@ def main() -> None:
     priority_counts = Counter(
         optimisation_results[
             "procurement_priority"
-        ].astype(str).tolist()
+        ]
+        .astype(str)
+        .tolist()
     )
 
     summary = InventoryOptimisationSummary(
@@ -355,48 +380,59 @@ def main() -> None:
         "PHASE 3.4 INVENTORY OPTIMISATION"
     )
     print(separator)
+
     print(
         f"Unique inventory parts: "
         f"{summary.inventory_parts:,}"
     )
+
     print(
         f"Forecast parts optimised: "
         f"{summary.forecast_parts:,}"
     )
+
     print(
         f"Optimisation records: "
         f"{summary.optimisation_records:,}"
     )
+
     print(
         f"Procurement recommendations: "
         f"{summary.procurement_recommendations:,}"
     )
+
     print(
         "Total inventory value: "
         f"USD "
         f"{summary.total_inventory_value_usd:,.2f}"
     )
+
     print(
         "Recommended order quantity: "
         f"{summary.total_recommended_order_quantity:,.0f}"
     )
+
     print(
         "Projected procurement value: "
         f"USD "
         f"{summary.total_procurement_value_usd:,.2f}"
     )
+
     print(
         f"Stockout risks: "
         f"{summary.risk_counts}"
     )
+
     print(
         "Human approvals required: "
         f"{summary.human_approval_required_count:,}"
     )
+
     print(
         f"Optimisation passed: "
         f"{summary.success}"
     )
+
     print(separator)
 
 

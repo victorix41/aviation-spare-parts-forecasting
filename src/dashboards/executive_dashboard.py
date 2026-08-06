@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
 
 from src.dashboards.dashboard_utils import (
@@ -16,15 +15,64 @@ from src.dashboards.dashboard_utils import (
     display_dataframe,
     format_currency,
     format_quantity,
-    render_governance_notice,
 )
 from src.dashboards.data_access import DashboardRepository
+
+
+def render_readiness_header(
+    repository: DashboardRepository,
+    settings: dict,
+) -> None:
+    """Render portfolio readiness and data-refresh information."""
+
+    kpis = repository.load_executive_kpis()
+
+    status, icon, explanation = determine_readiness_status(
+        critical_parts=int(
+            kpis["critical_parts"]
+        ),
+        high_risk_parts=int(
+            kpis["high_risk_parts"]
+        ),
+        procurement_exposure_usd=float(
+            kpis["procurement_value_usd"]
+        ),
+        settings=settings["readiness"],
+    )
+
+    refresh_time = (
+        repository.load_database_refresh_time()
+    )
+
+    status_column, refresh_column = st.columns(
+        [0.72, 0.28]
+    )
+
+    with status_column:
+        message = (
+            f"### {icon} Overall Spare-Parts Readiness: "
+            f"{status}\n\n{explanation}"
+        )
+
+        if status == "Critical Attention":
+            st.error(message)
+        elif status == "Management Attention":
+            st.warning(message)
+        else:
+            st.success(message)
+
+    with refresh_column:
+        st.info(
+            "### Data refreshed\n\n"
+            f"{refresh_time:%d %b %Y}\n\n"
+            f"{refresh_time:%H:%M}"
+        )
 
 
 def render_kpis(
     repository: DashboardRepository,
 ) -> None:
-    """Render executive KPI cards."""
+    """Render Accountable Manager KPI cards."""
 
     kpis = repository.load_executive_kpis()
 
@@ -34,17 +82,14 @@ def render_kpis(
         "Forecast-active parts",
         f"{kpis['forecast_parts']:,}",
     )
-
     first_row[1].metric(
         "Critical stock risks",
         f"{kpis['critical_parts']:,}",
     )
-
     first_row[2].metric(
         "High stock risks",
         f"{kpis['high_risk_parts']:,}",
     )
-
     first_row[3].metric(
         "Procurement recommendations",
         f"{kpis['procurement_recommendations']:,}",
@@ -58,21 +103,18 @@ def render_kpis(
             kpis["inventory_value_usd"]
         ),
     )
-
     second_row[1].metric(
         "Projected procurement exposure",
         format_currency(
             kpis["procurement_value_usd"]
         ),
     )
-
     second_row[2].metric(
         "Recommended units",
         format_quantity(
             kpis["recommended_order_quantity"]
         ),
     )
-
     second_row[3].metric(
         "Assured AI advisories",
         f"{kpis['approved_advisories']:,}",
@@ -83,9 +125,11 @@ def render_risk_and_finance(
     repository: DashboardRepository,
     settings: dict,
 ) -> None:
-    """Render risk and procurement-exposure charts."""
+    """Render stock-risk and procurement-exposure charts."""
 
-    risk_summary = repository.load_risk_summary()
+    risk_summary = (
+        repository.load_risk_summary()
+    )
 
     chart_columns = st.columns(2)
 
@@ -96,7 +140,7 @@ def render_risk_and_finance(
                 settings["risk_order"],
                 settings["risk_colours"],
             ),
-            use_container_width=True,
+            width="stretch",
         )
 
     with chart_columns[1]:
@@ -106,22 +150,66 @@ def render_risk_and_finance(
                 settings["risk_order"],
                 settings["risk_colours"],
             ),
-            use_container_width=True,
+            width="stretch",
+        )
+
+
+def render_confidence_and_advisories(
+    repository: DashboardRepository,
+    settings: dict,
+) -> None:
+    """Render confidence and advisory-priority distributions."""
+
+    confidence_data = (
+        repository
+        .load_forecast_confidence_summary()
+    )
+
+    advisory_data = (
+        repository
+        .load_advisory_priority_summary()
+    )
+
+    chart_columns = st.columns(2)
+
+    with chart_columns[0]:
+        st.plotly_chart(
+            create_forecast_confidence_chart(
+                confidence_data
+            ),
+            width="stretch",
+        )
+
+    with chart_columns[1]:
+        st.plotly_chart(
+            create_advisory_priority_chart(
+                advisory_data,
+                settings["risk_colours"],
+            ),
+            width="stretch",
         )
 
 
 def render_model_selection(
     repository: DashboardRepository,
 ) -> None:
-    """Render selected forecast models."""
+    """Render selected forecast-model distribution."""
 
-    model_summary = repository.load_model_summary()
+    model_summary = (
+        repository.load_model_summary()
+    )
+
+    if model_summary.empty:
+        st.info(
+            "No selected forecast-model results are available."
+        )
+        return
 
     st.plotly_chart(
         create_model_distribution_chart(
             model_summary
         ),
-        use_container_width=True,
+        width="stretch",
     )
 
     with st.expander(
@@ -163,26 +251,26 @@ def render_accountable_manager_advisories(
     for row in recommendations.itertuples(
         index=False
     ):
-        if row.priority == "Critical":
-            container = st.error
-        elif row.priority == "High":
-            container = st.warning
-        else:
-            container = st.info
-
-        container(
+        message = (
             f"**{row.priority} — {row.title}**\n\n"
             f"{row.recommendation}\n\n"
             f"**Rationale:** {row.rationale}\n\n"
             f"**Status:** {row.status}"
         )
 
+        if row.priority == "Critical":
+            st.error(message)
+        elif row.priority == "High":
+            st.warning(message)
+        else:
+            st.info(message)
+
 
 def render_priority_actions(
     repository: DashboardRepository,
     maximum_rows: int,
 ) -> None:
-    """Render highest-priority cross-functional actions."""
+    """Render the highest-priority procurement reviews."""
 
     st.subheader(
         "Highest-Priority Procurement Reviews"
@@ -196,7 +284,8 @@ def render_priority_actions(
 
     if recommendations.empty:
         st.success(
-            "No current procurement recommendation requires action."
+            "No current procurement recommendation "
+            "requires action."
         )
         return
 
@@ -213,229 +302,11 @@ def render_priority_actions(
     )
 
 
-def render_data_status(
-    repository: DashboardRepository,
-) -> None:
-    """Render pipeline-data availability."""
-
-    with st.expander(
-        "Data and pipeline status"
-    ):
-        status = repository.load_data_status()
-
-        available_count = int(
-            (
-                status["status"]
-                == "Available"
-            ).sum()
-        )
-
-        total_count = len(status)
-
-        st.write(
-            f"{available_count} of {total_count} "
-            "dashboard source tables are available."
-        )
-
-        display_dataframe(
-            status,
-            quantity_columns=[
-                "row_count",
-            ],
-            height=420,
-        )
-
-
-def render_executive_dashboard(
-    repository: DashboardRepository,
-    settings: dict,
-) -> None:
-    """Render the enhanced Accountable Manager dashboard."""
-
-    apply_dashboard_styling()
-
-    st.title(
-        "Accountable Manager Dashboard"
-    )
-
-    st.caption(
-        "Enterprise inventory risk, procurement exposure, "
-        "forecasting status and assured management advisories."
-    )
-
-    render_governance_notice()
-
-    render_readiness_header(
-        repository,
-        settings,
-    )
-
-    render_kpis(
-        repository
-    )
-
-    st.divider()
-
-    render_risk_and_finance(
-        repository,
-        settings,
-    )
-
-    st.divider()
-
-    render_confidence_and_advisories(
-        repository,
-        settings,
-    )
-
-    st.divider()
-
-    model_column, advisory_column = st.columns(
-        [
-            1.1,
-            0.9,
-        ]
-    )
-
-    with model_column:
-        render_model_selection(
-            repository
-        )
-
-    with advisory_column:
-        render_accountable_manager_advisories(
-            repository,
-            maximum_rows=int(
-                settings["display"][
-                    "top_recommendations"
-                ]
-            ),
-        )
-
-    st.divider()
-
-    render_priority_actions(
-        repository,
-        maximum_rows=int(
-            settings["display"][
-                "top_recommendations"
-            ]
-        ),
-    )
-
-    st.divider()
-
-    render_part_drilldown(
-        repository,
-        settings,
-    )
-
-    render_data_status(
-        repository
-    )
-
-def render_readiness_header(
-    repository: DashboardRepository,
-    settings: dict,
-) -> None:
-    """Render readiness status and database refresh time."""
-
-    kpis = repository.load_executive_kpis()
-
-    (
-        status,
-        icon,
-        explanation,
-    ) = determine_readiness_status(
-        critical_parts=int(
-            kpis["critical_parts"]
-        ),
-        high_risk_parts=int(
-            kpis["high_risk_parts"]
-        ),
-        procurement_exposure_usd=float(
-            kpis["procurement_value_usd"]
-        ),
-        settings=settings["readiness"],
-    )
-
-    refresh_time = (
-        repository.load_database_refresh_time()
-    )
-
-    status_column, refresh_column = st.columns(
-        [
-            0.72,
-            0.28,
-        ]
-    )
-
-    with status_column:
-        if status == "Critical Attention":
-            st.error(
-                f"### {icon} Overall Spare-Parts Readiness: {status}\n\n"
-                f"{explanation}"
-            )
-        elif status == "Management Attention":
-            st.warning(
-                f"### {icon} Overall Spare-Parts Readiness: {status}\n\n"
-                f"{explanation}"
-            )
-        else:
-            st.success(
-                f"### {icon} Overall Spare-Parts Readiness: {status}\n\n"
-                f"{explanation}"
-            )
-
-    with refresh_column:
-        st.info(
-            "### Data refreshed\n\n"
-            f"{refresh_time:%d %b %Y}\n\n"
-            f"{refresh_time:%H:%M}"
-        )
-
-def render_confidence_and_advisories(
-    repository: DashboardRepository,
-    settings: dict,
-) -> None:
-    """Render confidence and advisory-priority distributions."""
-
-    confidence_data = (
-        repository
-        .load_forecast_confidence_summary()
-    )
-
-    advisory_data = (
-        repository
-        .load_advisory_priority_summary()
-    )
-
-    confidence_column, advisory_column = st.columns(
-        2
-    )
-
-    with confidence_column:
-        st.plotly_chart(
-            create_forecast_confidence_chart(
-                confidence_data
-            ),
-            use_container_width=True,
-        )
-
-    with advisory_column:
-        st.plotly_chart(
-            create_advisory_priority_chart(
-                advisory_data,
-                settings["risk_colours"],
-            ),
-            use_container_width=True,
-        )
-
 def render_part_drilldown(
     repository: DashboardRepository,
     settings: dict,
 ) -> None:
-    """Render a consolidated part-level executive review."""
+    """Render a consolidated spare-part management review."""
 
     if not bool(
         settings["drilldown"]["enabled"]
@@ -478,6 +349,7 @@ def render_part_drilldown(
         options=list(
             display_options.keys()
         ),
+        key="executive_part_drilldown",
     )
 
     selected_part = display_options[
@@ -504,23 +376,18 @@ def render_part_drilldown(
             row["current_balance"]
         ),
     )
-
     first_row[1].metric(
         "Reorder point",
         f"{float(row['reorder_point']):,.2f}",
     )
-
     first_row[2].metric(
         "12-month forecast",
         f"{float(row['forecast_12m']):,.2f}",
     )
-
     first_row[3].metric(
         "Recommended order",
         format_quantity(
-            row[
-                "recommended_order_quantity"
-            ]
+            row["recommended_order_quantity"]
         ),
     )
 
@@ -528,23 +395,19 @@ def render_part_drilldown(
 
     second_row[0].metric(
         "Stockout risk",
-        str(
-            row["stockout_risk"]
-        ),
+        str(row["stockout_risk"]),
     )
-
     second_row[1].metric(
         "Forecast confidence",
-        str(
-            row["forecast_confidence"]
-        ),
+        str(row["forecast_confidence"]),
     )
-
     second_row[2].metric(
         "Lead time",
-        f"{float(row['average_lead_time_days']):,.0f} days",
+        (
+            f"{float(row['average_lead_time_days']):,.0f} "
+            "days"
+        ),
     )
-
     second_row[3].metric(
         "Procurement value",
         format_currency(
@@ -553,12 +416,12 @@ def render_part_drilldown(
     )
 
     st.markdown(
-        f"**Selected forecast model:** "
+        "**Selected forecast model:** "
         f"`{row['selected_forecast_model']}`"
     )
 
     st.markdown(
-        f"**Optimisation rationale:** "
+        "**Optimisation rationale:** "
         f"{row['recommendation_reason']}"
     )
 
@@ -567,8 +430,7 @@ def render_part_drilldown(
     )
 
     with st.expander(
-        "View cross-functional agent advisories",
-        expanded=False,
+        "View cross-functional agent advisories"
     ):
         if advisories.empty:
             st.info(
@@ -582,13 +444,125 @@ def render_part_drilldown(
                     f"### {advisory.priority} — "
                     f"{advisory.target_role}"
                 )
-
                 st.write(
                     advisory.recommendation
                 )
-
                 st.caption(
                     f"Rationale: {advisory.rationale}"
                 )
-
                 st.divider()
+
+
+def render_data_status(
+    repository: DashboardRepository,
+) -> None:
+    """Render source-table availability."""
+
+    with st.expander(
+        "Data and pipeline status"
+    ):
+        status = repository.load_data_status()
+
+        available_count = int(
+            (
+                status["status"]
+                == "Available"
+            ).sum()
+        )
+
+        st.write(
+            f"{available_count} of {len(status)} "
+            "dashboard source tables are available."
+        )
+
+        display_dataframe(
+            status,
+            quantity_columns=[
+                "row_count",
+            ],
+            height=420,
+        )
+
+
+def render_executive_dashboard(
+    repository: DashboardRepository,
+    settings: dict,
+) -> None:
+    """Render the Accountable Manager dashboard."""
+
+    apply_dashboard_styling()
+
+    st.title(
+        "Accountable Manager Dashboard"
+    )
+
+    st.caption(
+        "Enterprise inventory risk, procurement exposure, "
+        "forecasting status and assured management advisories."
+    )
+
+    render_readiness_header(
+        repository,
+        settings,
+    )
+
+    render_kpis(
+        repository
+    )
+
+    st.divider()
+
+    render_risk_and_finance(
+        repository,
+        settings,
+    )
+
+    st.divider()
+
+    render_confidence_and_advisories(
+        repository,
+        settings,
+    )
+
+    st.divider()
+
+    model_column, advisory_column = st.columns(
+        [1.1, 0.9]
+    )
+
+    with model_column:
+        render_model_selection(
+            repository
+        )
+
+    with advisory_column:
+        render_accountable_manager_advisories(
+            repository,
+            maximum_rows=int(
+                settings["display"][
+                    "top_recommendations"
+                ]
+            ),
+        )
+
+    st.divider()
+
+    render_priority_actions(
+        repository,
+        maximum_rows=int(
+            settings["display"][
+                "top_recommendations"
+            ]
+        ),
+    )
+
+    st.divider()
+
+    render_part_drilldown(
+        repository,
+        settings,
+    )
+
+    render_data_status(
+        repository
+    )

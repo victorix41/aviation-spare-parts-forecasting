@@ -10,6 +10,7 @@ from src.optimisation.inventory_engine import (
     calculate_safety_stock,
     calculate_service_level_z_score,
     classify_stockout_risk,
+    prepare_criticality_lookup,
     prepare_inventory_summary,
     run_inventory_optimisation,
 )
@@ -57,7 +58,7 @@ def create_settings() -> dict:
 
 
 def test_service_level_z_score() -> None:
-    """A 95% service level should produce about 1.645."""
+    """A 95% service level should produce approximately 1.645."""
 
     assert calculate_service_level_z_score(
         0.95
@@ -78,6 +79,19 @@ def test_lead_time_calculation() -> None:
     )
 
     assert result == 30.0
+
+
+def test_missing_dates_use_default_lead_time() -> None:
+    """Missing procurement dates should use the configured default."""
+
+    result = calculate_lead_time_days(
+        None,
+        None,
+        default_lead_time_days=45,
+        minimum_lead_time_days=1,
+    )
+
+    assert result == 45.0
 
 
 def test_safety_stock_is_non_negative() -> None:
@@ -106,12 +120,21 @@ def test_eoq_calculation() -> None:
 
 
 def test_months_of_cover() -> None:
-    """Stock cover should equal balance divided by monthly demand."""
+    """Stock cover should equal balance divided by demand."""
 
     assert calculate_months_of_cover(
         current_balance=12,
         average_monthly_demand=3,
     ) == 4.0
+
+
+def test_zero_demand_returns_no_months_of_cover() -> None:
+    """No demand should return an undefined stock-cover value."""
+
+    assert calculate_months_of_cover(
+        current_balance=12,
+        average_monthly_demand=0,
+    ) is None
 
 
 def test_zero_balance_is_critical() -> None:
@@ -130,7 +153,7 @@ def test_zero_balance_is_critical() -> None:
 
 
 def test_duplicate_inventory_records_are_aggregated() -> None:
-    """Multiple lots for a part should be aggregated."""
+    """Multiple inventory lots for a part should be aggregated."""
 
     inventory = pd.DataFrame(
         {
@@ -168,12 +191,64 @@ def test_duplicate_inventory_records_are_aggregated() -> None:
     )
 
     assert len(result) == 1
-    assert result.iloc[0][
-        "inventory_record_count"
-    ] == 2
-    assert result.iloc[0][
-        "current_balance"
-    ] == 7
+
+    assert (
+        result.iloc[0][
+            "inventory_record_count"
+        ]
+        == 2
+    )
+
+    assert (
+        result.iloc[0][
+            "current_balance"
+        ]
+        == 7
+    )
+
+    assert (
+        result.iloc[0][
+            "inventory_value_usd"
+        ]
+        == 700.0
+    )
+
+
+def test_criticality_lookup_deduplicates_parts() -> None:
+    """Criticality lookup should retain one record per part."""
+
+    forecast_summary = pd.DataFrame(
+        {
+            "part_number": [
+                "PN-001",
+                "PN-001",
+                "PN-002",
+            ],
+            "engineering_criticality": [
+                "Medium",
+                "High",
+                "Critical",
+            ],
+        }
+    )
+
+    result = prepare_criticality_lookup(
+        forecast_summary
+    )
+
+    assert len(result) == 2
+
+    part_one = result.loc[
+        result["part_number"]
+        == "PN-001"
+    ].iloc[0]
+
+    assert (
+        part_one[
+            "engineering_criticality"
+        ]
+        == "High"
+    )
 
 
 def test_complete_inventory_optimisation() -> None:
@@ -219,9 +294,6 @@ def test_complete_inventory_optimisation() -> None:
             "demand_pattern": [
                 "Intermittent",
             ],
-            "engineering_criticality": [
-                "High",
-            ],
         }
     )
 
@@ -254,29 +326,58 @@ def test_complete_inventory_optimisation() -> None:
         }
     )
 
+    forecast_summary = pd.DataFrame(
+        {
+            "part_number": [
+                "PN-001",
+            ],
+            "engineering_criticality": [
+                "High",
+            ],
+        }
+    )
+
     result = run_inventory_optimisation(
         inventory=inventory,
         demand_metrics=demand_metrics,
         final_forecasts=final_forecasts,
+        forecast_summary=forecast_summary,
         settings=create_settings(),
     )
 
     assert len(result) == 1
+
+    output = result.iloc[0]
+
     assert (
-        result.iloc[0][
+        output[
+            "engineering_criticality"
+        ]
+        == "High"
+    )
+
+    assert (
+        output[
             "recommended_order_quantity"
         ]
         > 0
     )
-    assert (
-        result.iloc[0][
+
+    assert bool(
+        output[
             "human_approval_required"
         ]
-        is True
-        or bool(
-            result.iloc[0][
-                "human_approval_required"
-            ]
-        )
-        is True
+    ) is True
+
+    assert bool(
+        output[
+            "automatic_purchase_order_allowed"
+        ]
+    ) is False
+
+    assert (
+        output[
+            "recommendation_status"
+        ]
+        == "Order review required"
     )

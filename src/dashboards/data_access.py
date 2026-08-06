@@ -540,4 +540,473 @@ class DashboardRepository:
                 part_number,
             ],
         )
-    
+
+    def load_procurement_kpis(self) -> dict[str, float | int]:
+        """Load Procurement Manager KPI values."""
+
+        self.require_tables(
+            [
+                "inventory_optimisation_results",
+                "procurement_recommendations",
+            ]
+        )
+
+        result = self.query(
+            """
+            SELECT
+                COUNT(*) AS recommendation_count,
+                SUM(recommended_order_quantity)
+                    AS recommended_order_quantity,
+                SUM(procurement_value_usd)
+                    AS procurement_value_usd,
+                SUM(
+                    CASE
+                        WHEN procurement_priority = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS critical_priority_count,
+                SUM(
+                    CASE
+                        WHEN average_lead_time_days >= 90
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS long_lead_time_count,
+                SUM(
+                    CASE
+                        WHEN procurement_value_usd >= 50000
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS high_value_count
+            FROM procurement_recommendations
+            """
+        )
+
+        row = result.iloc[0]
+
+        return {
+            "recommendation_count": int(
+                row["recommendation_count"] or 0
+            ),
+            "recommended_order_quantity": float(
+                row["recommended_order_quantity"] or 0.0
+            ),
+            "procurement_value_usd": float(
+                row["procurement_value_usd"] or 0.0
+            ),
+            "critical_priority_count": int(
+                row["critical_priority_count"] or 0
+            ),
+            "long_lead_time_count": int(
+                row["long_lead_time_count"] or 0
+            ),
+            "high_value_count": int(
+                row["high_value_count"] or 0
+            ),
+        }
+
+    def load_procurement_dashboard_data(
+        self,
+    ) -> pd.DataFrame:
+        """Load all Procurement Manager review records."""
+
+        return self.query(
+            """
+            SELECT
+                procurement_priority,
+                part_number,
+                description,
+                engineering_criticality,
+                stockout_risk,
+                forecast_confidence,
+                selected_forecast_model,
+                current_balance,
+                safety_stock,
+                reorder_point,
+                recommended_order_quantity,
+                unit_price_usd,
+                procurement_value_usd,
+                average_lead_time_days,
+                months_of_stock_cover,
+                recommendation_status,
+                recommendation_reason
+            FROM procurement_recommendations
+            ORDER BY
+                procurement_priority,
+                procurement_value_usd DESC
+            """
+        )
+          
+
+    def load_finance_kpis(self) -> dict[str, float | int]:
+        """Load Finance Manager KPI values."""
+
+        result = self.query(
+            """
+            SELECT
+                SUM(inventory_value_usd)
+                    AS inventory_value_usd,
+                SUM(procurement_value_usd)
+                    AS procurement_value_usd,
+                SUM(recommended_order_quantity)
+                    AS recommended_order_quantity,
+                SUM(
+                    CASE
+                        WHEN procurement_value_usd >= 100000
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS six_figure_orders,
+                SUM(
+                    CASE
+                        WHEN forecast_confidence = 'Low'
+                        AND procurement_value_usd > 0
+                        THEN procurement_value_usd
+                        ELSE 0
+                    END
+                ) AS low_confidence_exposure_usd
+            FROM inventory_optimisation_results
+            """
+        )
+
+        row = result.iloc[0]
+
+        return {
+            "inventory_value_usd": float(
+                row["inventory_value_usd"] or 0.0
+            ),
+            "procurement_value_usd": float(
+                row["procurement_value_usd"] or 0.0
+            ),
+            "recommended_order_quantity": float(
+                row["recommended_order_quantity"] or 0.0
+            ),
+            "six_figure_orders": int(
+                row["six_figure_orders"] or 0
+            ),
+            "low_confidence_exposure_usd": float(
+                row["low_confidence_exposure_usd"] or 0.0
+            ),
+        }
+
+    def load_finance_exposure(self) -> pd.DataFrame:
+        """Load part-level Finance Manager exposure."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                stockout_risk,
+                forecast_confidence,
+                selected_forecast_model,
+                current_balance,
+                inventory_value_usd,
+                recommended_order_quantity,
+                procurement_value_usd,
+                forecast_12m,
+                engineering_criticality
+            FROM inventory_optimisation_results
+            WHERE procurement_value_usd > 0
+            ORDER BY procurement_value_usd DESC
+            """
+        )
+
+    def load_engineering_kpis(self) -> dict[str, int]:
+        """Load Engineering Manager KPI values."""
+
+        result = self.query(
+            """
+            SELECT
+                SUM(
+                    CASE
+                        WHEN engineering_criticality = 'Critical'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS critical_parts,
+                SUM(
+                    CASE
+                        WHEN engineering_criticality = 'High'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS high_criticality_parts,
+                SUM(
+                    CASE
+                        WHEN engineering_criticality
+                            IN ('Critical', 'High')
+                        AND recommended_order_quantity > 0
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS engineering_reviews,
+                SUM(
+                    CASE
+                        WHEN forecast_confidence = 'Low'
+                        AND engineering_criticality
+                            IN ('Critical', 'High')
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS low_confidence_critical_parts
+            FROM inventory_optimisation_results
+            """
+        )
+
+        row = result.iloc[0]
+
+        return {
+            "critical_parts": int(
+                row["critical_parts"] or 0
+            ),
+            "high_criticality_parts": int(
+                row["high_criticality_parts"] or 0
+            ),
+            "engineering_reviews": int(
+                row["engineering_reviews"] or 0
+            ),
+            "low_confidence_critical_parts": int(
+                row["low_confidence_critical_parts"] or 0
+            ),
+        }
+
+    def load_engineering_review_data(
+        self,
+    ) -> pd.DataFrame:
+        """Load Engineering Manager review records."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                engineering_criticality,
+                demand_pattern,
+                selected_forecast_model,
+                forecast_confidence,
+                current_balance,
+                reorder_point,
+                recommended_order_quantity,
+                procurement_value_usd,
+                stockout_risk,
+                recommendation_reason
+            FROM inventory_optimisation_results
+            WHERE engineering_criticality
+                IN ('Critical', 'High')
+            ORDER BY
+                CASE engineering_criticality
+                    WHEN 'Critical' THEN 1
+                    ELSE 2
+                END,
+                procurement_priority,
+                procurement_value_usd DESC
+            """
+        )
+
+    def load_operations_kpis(self) -> dict[str, int | float]:
+        """Load Operations Manager KPI values."""
+
+        result = self.query(
+            """
+            SELECT
+                SUM(
+                    CASE
+                        WHEN stockout_risk = 'Critical'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS critical_stockouts,
+                SUM(
+                    CASE
+                        WHEN stockout_risk = 'High'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS high_stockouts,
+                SUM(
+                    CASE
+                        WHEN estimated_stockout_months <= 0.5
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS immediate_exposure,
+                SUM(
+                    CASE
+                        WHEN estimated_stockout_months > 0.5
+                        AND estimated_stockout_months <= 1.5
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS near_term_exposure,
+                AVG(months_of_stock_cover)
+                    AS average_months_cover
+            FROM inventory_optimisation_results
+            """
+        )
+
+        row = result.iloc[0]
+
+        return {
+            "critical_stockouts": int(
+                row["critical_stockouts"] or 0
+            ),
+            "high_stockouts": int(
+                row["high_stockouts"] or 0
+            ),
+            "immediate_exposure": int(
+                row["immediate_exposure"] or 0
+            ),
+            "near_term_exposure": int(
+                row["near_term_exposure"] or 0
+            ),
+            "average_months_cover": float(
+                row["average_months_cover"] or 0.0
+            ),
+        }
+
+    def load_operations_readiness_data(
+        self,
+    ) -> pd.DataFrame:
+        """Load Operations Manager stock-readiness records."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                engineering_criticality,
+                stockout_risk,
+                current_balance,
+                average_monthly_demand,
+                months_of_stock_cover,
+                estimated_stockout_months,
+                reorder_point,
+                recommended_order_quantity,
+                average_lead_time_days,
+                forecast_confidence,
+                recommendation_status
+            FROM inventory_optimisation_results
+            ORDER BY
+                CASE stockout_risk
+                    WHEN 'Critical' THEN 1
+                    WHEN 'High' THEN 2
+                    WHEN 'Medium' THEN 3
+                    ELSE 4
+                END,
+                estimated_stockout_months,
+                part_number
+            """
+        )
+
+    def load_quality_kpis(self) -> dict[str, int]:
+        """Load Quality Manager KPI values."""
+
+        result = self.query(
+            """
+            SELECT
+                COUNT(*) AS order_review_records,
+                SUM(
+                    CASE
+                        WHEN human_approval_required
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS human_approval_records,
+                SUM(
+                    CASE
+                        WHEN forecast_confidence = 'Low'
+                        AND recommended_order_quantity > 0
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS low_confidence_orders,
+                SUM(
+                    CASE
+                        WHEN automatic_purchase_order_allowed
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS automatic_actions_allowed
+            FROM inventory_optimisation_results
+            WHERE recommended_order_quantity > 0
+            """
+        )
+
+        assurance = self.query(
+            """
+            SELECT
+                SUM(
+                    CASE
+                        WHEN assurance_status = 'Passed'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS passed_findings,
+                SUM(
+                    CASE
+                        WHEN assurance_status = 'Failed'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS failed_findings
+            FROM agent_assurance_findings
+            """
+        ).iloc[0]
+
+        row = result.iloc[0]
+
+        return {
+            "order_review_records": int(
+                row["order_review_records"] or 0
+            ),
+            "human_approval_records": int(
+                row["human_approval_records"] or 0
+            ),
+            "low_confidence_orders": int(
+                row["low_confidence_orders"] or 0
+            ),
+            "automatic_actions_allowed": int(
+                row["automatic_actions_allowed"] or 0
+            ),
+            "assurance_passed": int(
+                assurance["passed_findings"] or 0
+            ),
+            "assurance_failed": int(
+                assurance["failed_findings"] or 0
+            ),
+        }
+
+    def load_quality_review_data(
+        self,
+    ) -> pd.DataFrame:
+        """Load Quality Manager review records."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                stockout_risk,
+                engineering_criticality,
+                forecast_confidence,
+                selected_forecast_model,
+                recommended_order_quantity,
+                procurement_value_usd,
+                human_approval_required,
+                automatic_purchase_order_allowed,
+                recommendation_status
+            FROM inventory_optimisation_results
+            WHERE recommended_order_quantity > 0
+            ORDER BY
+                CASE stockout_risk
+                    WHEN 'Critical' THEN 1
+                    WHEN 'High' THEN 2
+                    WHEN 'Medium' THEN 3
+                    ELSE 4
+                END,
+                procurement_value_usd DESC
+            """
+        )

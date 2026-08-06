@@ -5,6 +5,22 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from src.dashboards.engineering_dashboard import (
+    render_engineering_dashboard,
+)
+from src.dashboards.finance_dashboard import (
+    render_finance_dashboard,
+)
+from src.dashboards.operations_dashboard import (
+    render_operations_dashboard,
+)
+from src.dashboards.procurement_dashboard import (
+    render_procurement_dashboard,
+)
+from src.dashboards.quality_dashboard import (
+    render_quality_dashboard,
+)
+
 import streamlit as st
 import yaml
 
@@ -100,29 +116,28 @@ def render_sidebar() -> str:
         "Human approval required"
     )
 
+    st.sidebar.divider()
+
+    st.sidebar.markdown(
+        "**Governance controls**"
+    )
+
+    st.sidebar.info(
+        "✓ No automatic purchasing"
+    )
+
+    st.sidebar.info(
+        "✓ No inventory write-back"
+    )
+
     st.sidebar.caption(
-        "Phase 3.6A currently implements the "
-        "Accountable Manager view. The remaining role "
-        "dashboards will be added in Phase 3.6B."
+        "All management views use validated analytics and "
+        "assured recommendations. Forecasts, optimisation "
+        "outputs and AI recommendations must be reviewed by "
+        "authorised personnel."
     )
 
     return selected_page
-
-
-def render_placeholder(
-    role_name: str,
-) -> None:
-    """Render a temporary role-page placeholder."""
-
-    st.title(
-        f"{role_name} Dashboard"
-    )
-
-    st.info(
-        f"The {role_name} view will be implemented "
-        "in Phase 3.6B. Use the Accountable Manager "
-        "view to confirm the shared dashboard framework."
-    )
 
 
 def main() -> None:
@@ -152,12 +167,38 @@ def main() -> None:
 
         if selected_page == "Accountable Manager":
             render_executive_dashboard(
+            repository,
+            dashboard_settings,
+        )
+
+        elif selected_page == "Procurement Manager":
+            render_procurement_dashboard(
                 repository,
                 dashboard_settings,
             )
-        else:
-            render_placeholder(
-                selected_page
+
+        elif selected_page == "Finance Manager":
+            render_finance_dashboard(
+                repository,
+                dashboard_settings,
+            )
+
+        elif selected_page == "Engineering Manager":
+            render_engineering_dashboard(
+                repository,
+                dashboard_settings,
+            )
+
+        elif selected_page == "Operations Manager":
+            render_operations_dashboard(
+                repository,
+                dashboard_settings,
+            )
+
+        elif selected_page == "Quality Manager":
+            render_quality_dashboard(
+                repository,
+                dashboard_settings,
             )
 
     except DashboardDataError as exc:

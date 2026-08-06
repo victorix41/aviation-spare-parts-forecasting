@@ -479,3 +479,87 @@ def apply_dashboard_styling() -> None:
         """,
         unsafe_allow_html=True,
     )
+
+def create_horizontal_value_chart(
+    dataframe: pd.DataFrame,
+    *,
+    category_column: str,
+    value_column: str,
+    title: str,
+    value_label: str,
+):
+    """Create a reusable horizontal management chart."""
+
+    prepared = dataframe.sort_values(
+        value_column,
+        ascending=True,
+    ).copy()
+
+    figure = px.bar(
+        prepared,
+        x=value_column,
+        y=category_column,
+        orientation="h",
+        text=value_column,
+        labels={
+            category_column: "",
+            value_column: value_label,
+        },
+    )
+
+    figure.update_traces(
+        texttemplate="%{text:,.2f}",
+        textposition="outside",
+    )
+
+    figure.update_layout(
+        title=title,
+        showlegend=False,
+        margin={
+            "l": 20,
+            "r": 40,
+            "t": 60,
+            "b": 20,
+        },
+    )
+
+    return figure
+
+def create_stock_cover_chart(
+    dataframe: pd.DataFrame,
+):
+    """Create stock-cover chart for operational management."""
+
+    prepared = dataframe.head(20).copy()
+
+    figure = px.bar(
+        prepared,
+        x="part_number",
+        y="months_of_stock_cover",
+        color="stockout_risk",
+        color_discrete_map={
+            "Critical": "#C00000",
+            "High": "#ED7D31",
+            "Medium": "#FFC000",
+            "Low": "#70AD47",
+        },
+        labels={
+            "part_number": "Part number",
+            "months_of_stock_cover": (
+                "Months of stock cover"
+            ),
+        },
+    )
+
+    figure.update_layout(
+        title="Lowest Stock-Cover Parts",
+        xaxis_title=None,
+        margin={
+            "l": 20,
+            "r": 20,
+            "t": 60,
+            "b": 60,
+        },
+    )
+
+    return figure
