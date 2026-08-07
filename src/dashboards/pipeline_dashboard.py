@@ -15,6 +15,17 @@ from src.dashboards.data_access import (
     DashboardRepository,
 )
 
+from pathlib import Path
+
+from src.scheduling.job_monitoring import (
+    determine_scheduled_job_freshness,
+    inspect_job_lock,
+    load_recent_job_logs,
+    load_scheduled_job_summary,
+    read_job_log,
+    scheduled_job_stages_frame,
+)
+
 
 def render_pipeline_status_banner(
     *,
@@ -51,10 +62,305 @@ def render_pipeline_status_banner(
         message
     )
 
+def render_scheduled_job_monitoring(
+    *,
+    project_root: Path,
+    scheduling_settings: dict,
+) -> None:
+    """Render scheduled pipeline and report monitoring."""
+
+    st.subheader(
+        "Scheduled Pipeline and Report Execution"
+    )
+
+    summary_path = (
+        project_root
+        / scheduling_settings[
+            "latest_summary"
+        ]
+    )
+
+    log_directory = (
+        project_root
+        / scheduling_settings[
+            "log_directory"
+        ]
+    )
+
+    lock_path = (
+        project_root
+        / scheduling_settings[
+            "lock_file"
+        ]
+    )
+
+    monitoring_settings = (
+        scheduling_settings[
+            "monitoring"
+        ]
+    )
+
+    summary = load_scheduled_job_summary(
+        summary_path
+    )
+
+    if summary is None:
+        st.info(
+            "No scheduled-job execution summary "
+            "is currently available."
+        )
+
+    else:
+        freshness_status, age_hours = (
+            determine_scheduled_job_freshness(
+                completed_at=summary.get(
+                    "completed_at"
+                ),
+                stale_after_hours=float(
+                    monitoring_settings[
+                        "stale_after_hours"
+                    ]
+                ),
+            )
+        )
+
+        overall_status = str(
+            summary.get(
+                "overall_status",
+                "Unknown",
+            )
+        )
+
+        job_run_id = str(
+            summary.get(
+                "job_run_id",
+                "Unavailable",
+            )
+        )
+
+        duration_seconds = float(
+            summary.get(
+                "duration_seconds",
+                0.0,
+            )
+            or 0.0
+        )
+
+        stages = scheduled_job_stages_frame(
+            summary
+        )
+
+        passed_stage_count = int(
+            (
+                stages["status"]
+                == "Passed"
+            ).sum()
+        )
+
+        failed_stage_count = int(
+            (
+                stages["status"]
+                == "Failed"
+            ).sum()
+        )
+
+        if overall_status == "Failed":
+            st.error(
+                "The latest scheduled execution failed."
+            )
+
+        elif freshness_status == "Stale":
+            st.warning(
+                "The latest scheduled execution passed, "
+                "but its result is stale."
+            )
+
+        else:
+            st.success(
+                "The latest scheduled execution passed."
+            )
+
+        metric_columns = st.columns(6)
+
+        metric_columns[0].metric(
+            "Scheduled status",
+            overall_status,
+        )
+
+        metric_columns[1].metric(
+            "Stages passed",
+            f"{passed_stage_count:,}",
+        )
+
+        metric_columns[2].metric(
+            "Stages failed",
+            f"{failed_stage_count:,}",
+        )
+
+        metric_columns[3].metric(
+            "Job duration",
+            f"{duration_seconds:.2f} s",
+        )
+
+        metric_columns[4].metric(
+            "Result freshness",
+            freshness_status,
+        )
+
+        metric_columns[5].metric(
+            "Result age",
+            f"{age_hours:.2f} hours",
+        )
+
+        st.caption(
+            "Latest scheduled-job run ID: "
+            f"`{job_run_id}`"
+        )
+
+        if not stages.empty:
+            st.markdown(
+                "**Scheduled workflow stages**"
+            )
+
+            display_dataframe(
+                stages[
+                    [
+                        "module_name",
+                        "status",
+                        "return_code",
+                        "started_at",
+                        "completed_at",
+                        "duration_seconds",
+                    ]
+                ],
+                height=220,
+            )
+
+        error_message = summary.get(
+            "error_message"
+        )
+
+        if error_message:
+            st.error(
+                f"Scheduled-job error: {error_message}"
+            )
+
+    st.markdown(
+        "**Job lock status**"
+    )
+
+    lock_status = inspect_job_lock(
+        lock_path,
+        stale_after_minutes=float(
+            monitoring_settings[
+                "stale_lock_after_minutes"
+            ]
+        ),
+    )
+
+    lock_columns = st.columns(3)
+
+    lock_columns[0].metric(
+        "Lock file",
+        str(
+            lock_status["status"]
+        ),
+    )
+
+    lock_age_minutes = float(
+        lock_status["age_minutes"]
+    )
+
+    lock_columns[1].metric(
+        "Lock age",
+        f"{lock_age_minutes:.2f} minutes",
+    )
+
+    lock_columns[2].metric(
+        "Process ID",
+        str(
+            lock_status["process_id"]
+            or "Unavailable"
+        ),
+    )
+
+    if lock_status["status"] == "Stale":
+        st.error(
+            "A stale scheduled-job lock file exists. "
+            "Verify that no job is running before removing it."
+        )
+
+    recent_logs = load_recent_job_logs(
+        log_directory,
+        limit=int(
+            monitoring_settings[
+                "recent_log_limit"
+            ]
+        ),
+    )
+
+    st.markdown(
+        "**Recent scheduled-job logs**"
+    )
+
+    if recent_logs.empty:
+        st.info(
+            "No scheduled-job logs are available."
+        )
+
+    else:
+        display_dataframe(
+            recent_logs[
+                [
+                    "log_filename",
+                    "modified_at",
+                    "size_bytes",
+                ]
+            ],
+            quantity_columns=[
+                "size_bytes",
+            ],
+            height=280,
+        )
+
+        selected_log = st.selectbox(
+            "View scheduled-job log",
+            options=recent_logs[
+                "log_filename"
+            ].tolist(),
+            key="scheduled_job_log_selection",
+        )
+
+        selected_row = recent_logs.loc[
+            recent_logs[
+                "log_filename"
+            ]
+            == selected_log
+        ].iloc[0]
+
+        log_content = read_job_log(
+            Path(
+                selected_row[
+                    "log_path"
+                ]
+            )
+        )
+
+        with st.expander(
+            "Open selected scheduled-job log"
+        ):
+            st.code(
+                log_content,
+                language="text",
+            )
+
 
 def render_pipeline_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    *,
+    project_root: Path,
+    scheduling_settings: dict,
 ) -> None:
     """Render the complete pipeline-monitoring dashboard."""
 
@@ -309,3 +615,10 @@ def render_pipeline_dashboard(
                 f"Return code: {row.return_code}\n\n"
                 f"Error: {row.error_message}"
             )
+
+    st.divider()
+
+    render_scheduled_job_monitoring(    
+        project_root=project_root,
+        scheduling_settings=scheduling_settings,
+    )

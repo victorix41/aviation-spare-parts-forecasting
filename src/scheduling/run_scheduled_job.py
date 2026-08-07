@@ -88,13 +88,15 @@ def release_lock(
     lock_path: Path,
     descriptor: int | None,
 ) -> None:
-    """Close and remove the scheduled-job lock file."""
+    """Release a lock only when this process acquired it."""
 
-    if descriptor is not None:
-        try:
-            os.close(descriptor)
-        except OSError:
-            pass
+    if descriptor is None:
+        return
+
+    try:
+        os.close(descriptor)
+    except OSError:
+        pass
 
     try:
         lock_path.unlink()

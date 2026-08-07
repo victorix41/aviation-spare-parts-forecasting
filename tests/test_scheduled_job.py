@@ -99,3 +99,43 @@ def test_old_logs_are_removed(
     )
 
     assert len(remaining_logs) == 2
+
+def test_failed_lock_acquisition_does_not_remove_existing_lock(
+    tmp_path: Path,
+) -> None:
+    """A blocked process must not remove another process's lock."""
+
+    lock_path = (
+        tmp_path
+        / "scheduled_job.lock"
+    )
+
+    owner_descriptor = acquire_lock(
+        lock_path
+    )
+
+    blocked_descriptor = None
+
+    try:
+        with pytest.raises(
+            RuntimeError,
+            match="appears to be running",
+        ):
+            blocked_descriptor = acquire_lock(
+                lock_path
+            )
+
+        release_lock(
+            lock_path,
+            blocked_descriptor,
+        )
+
+        assert lock_path.is_file()
+
+    finally:
+        release_lock(
+            lock_path,
+            owner_descriptor,
+        )
+
+    assert not lock_path.exists()

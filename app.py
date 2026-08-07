@@ -226,6 +226,10 @@ def main() -> None:
             render_pipeline_dashboard(
                 repository,
                 dashboard_settings,
+                project_root=PROJECT_ROOT,
+                scheduling_settings=settings[
+                    "scheduling"
+                ],
             )
 
         elif selected_page == "Management Report":

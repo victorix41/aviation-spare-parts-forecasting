@@ -316,6 +316,11 @@ scheduling:
   retention:
     maximum_log_files: 30
 
+  monitoring:
+    recent_log_limit: 10
+    stale_after_hours: 24
+    stale_lock_after_minutes: 60
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
