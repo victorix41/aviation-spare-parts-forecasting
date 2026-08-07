@@ -321,6 +321,36 @@ scheduling:
     stale_after_hours: 24
     stale_lock_after_minutes: 60
 
+production_readiness:
+  enabled: true
+
+  require_latest_pipeline_passed: true
+  require_latest_scheduled_job_passed: true
+  require_management_report: true
+  require_no_active_lock: true
+  require_all_dashboard_tables: true
+
+  required_tables:
+    - inventory
+    - issue_history
+    - repair_orders
+    - forecast_summary
+    - demand_metrics
+    - forecast_backtest_results
+    - selected_forecast_models
+    - final_part_forecasts
+    - inventory_optimisation_results
+    - procurement_recommendations
+    - agent_recommendations
+    - agent_assurance_findings
+    - pipeline_runs
+    - pipeline_stage_runs
+
+  governance:
+    require_human_approval: true
+    require_no_automatic_purchase_orders: true
+    require_no_inventory_writeback: true
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true

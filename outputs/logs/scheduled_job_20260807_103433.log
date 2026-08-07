@@ -1,0 +1,148 @@
+========================================================================
+AVIATION SPARE PARTS — SCHEDULED JOB
+========================================================================
+Job run ID: JOB-5E4C4FB9D3AF
+Started at: 2026-08-07T02:34:28.493324+00:00
+Completed at: 2026-08-07T02:34:33.309511+00:00
+Overall status: Passed
+Duration: 4.82 seconds
+
+------------------------------------------------------------------------
+Module: src.pipeline.run_full_pipeline
+Status: Passed
+Duration: 4.06 seconds
+Return code: 0
+
+Standard output:
+========================================================================
+AVIATION SPARE PARTS — END-TO-END PIPELINE
+========================================================================
+Pipeline run ID: RUN-ACCF0CA40730
+
+[1/5] Data ingestion and validation
+------------------------------------------------------------------------
+========================================================================
+AVIATION SPARE PARTS — PHASE 2 INGESTION
+========================================================================
+✓ Source_Listing_V3 → inventory: 300 rows, 20 columns
+✓ Issue_History_3000 → issue_history: 3,000 rows, 16 columns
+✓ Repair_Order_Master → repair_orders: 1,000 rows, 13 columns
+✓ Forecast_Summary → forecast_summary: 300 rows, 22 columns
+------------------------------------------------------------------------
+Datasets loaded: 4
+Total records loaded: 4,600
+Ingestion passed: True
+========================================================================
+
+Stage status: Passed
+Stage duration: 0.96 seconds
+
+[2/5] Demand analytics
+------------------------------------------------------------------------
+========================================================================
+AVIATION SPARE PARTS — PHASE 3.1 DEMAND ANALYTICS
+========================================================================
+History period: 2023-08-01 to 2026-07-31
+History months: 36
+Inventory records: 300
+Unique inventory parts analysed: 299
+Demand-active parts: 105
+Parts with no demand: 194
+Monthly demand records: 10,764
+Total quantity issued: 6,460
+Total issued value: USD 6,338,543.61
+
+ABC classes: {'C': 263, 'A': 19, 'B': 17}
+XYZ classes: {'Z': 299}
+Demand patterns: {'No demand': 194, 'Intermittent': 105}
+========================================================================
+
+Stage status: Passed
+Stage duration: 0.64 seconds
+
+[3/5] Forecast model selection
+------------------------------------------------------------------------
+========================================================================
+AVIATION SPARE PARTS — PHASE 3.3 MODEL SELECTION
+========================================================================
+Forecast-eligible parts: 105
+Parts with selected models: 105
+Backtest records: 525
+Candidate models per part: 5
+Primary metric: WAPE
+Selected model counts: {'croston_sba': 18, 'naive': 54, 'moving_average': 7, 'weighted_moving_average': 23, 'exponential_smoothing': 3}
+Forecast confidence: {'Low': 26, 'Medium': 79}
+Model selection passed: True
+========================================================================
+
+Stage status: Passed
+Stage duration: 0.94 seconds
+
+[4/5] Inventory optimisation
+------------------------------------------------------------------------
+========================================================================
+AVIATION SPARE PARTS — PHASE 3.4 INVENTORY OPTIMISATION
+========================================================================
+Unique inventory parts: 299
+Forecast parts optimised: 105
+Optimisation records: 105
+Procurement recommendations: 46
+Total inventory value: USD 373,443.33
+Recommended order quantity: 544
+Projected procurement value: USD 1,477,954.72
+Stockout risks: {'High': 35, 'Low': 61, 'Critical': 6, 'Medium': 3}
+Human approvals required: 105
+Optimisation passed: True
+========================================================================
+
+Stage status: Passed
+Stage duration: 0.57 seconds
+
+[5/5] Agentic advisory generation
+------------------------------------------------------------------------
+========================================================================
+AVIATION SPARE PARTS — PHASE 3.5 AGENTIC AI ADVISORY
+========================================================================
+Recommendations generated: 163
+Recommendations approved: 163
+Recommendations rejected: 0
+Agent recommendations: {'Executive Agent': 3, 'Engineering Agent': 25, 'Operations Agent': 41, 'Procurement Agent': 46, 'Finance Agent': 4, 'Quality Agent': 44}
+Role recommendations: {'Accountable Manager': 3, 'Engineering Manager': 25, 'Operations Manager': 41, 'Procurement Manager': 46, 'Finance Manager': 4, 'Quality Manager': 44}
+Priority distribution: {'Critical': 18, 'High': 113, 'Medium': 26, 'Low': 6}
+Automatic actions allowed: False
+Human approval required: True
+Advisory engine passed: True
+========================================================================
+
+Stage status: Passed
+Stage duration: 0.48 seconds
+
+========================================================================
+Overall pipeline status: Passed
+Successful stages: 5
+Failed stages: 0
+Total duration: 3.59 seconds
+Summary file: /home/wongks-9331485/Personal Projects/aviation-spare-parts-forecasting/outputs/reports/full_pipeline_summary.json
+========================================================================
+
+Standard error:
+/home/wongks-9331485/miniconda3/envs/spare-parts-ai/lib/python3.11/site-packages/openpyxl/worksheet/_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+/home/wongks-9331485/miniconda3/envs/spare-parts-ai/lib/python3.11/site-packages/openpyxl/worksheet/_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+
+------------------------------------------------------------------------
+Module: src.reporting.run_management_report
+Status: Passed
+Duration: 0.76 seconds
+Return code: 0
+
+Standard output:
+========================================================================
+AVIATION SPARE PARTS — MANAGEMENT REPORT EXPORT
+========================================================================
+Report created: /home/wongks-9331485/Personal Projects/aviation-spare-parts-forecasting/outputs/reports/aviation_spare_parts_management_report.xlsx
+Report format: Microsoft Excel
+Automatic purchasing enabled: False
+Human approval required: True
+========================================================================
