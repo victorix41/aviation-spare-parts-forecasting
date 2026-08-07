@@ -301,6 +301,21 @@ reporting:
       low: "70AD47"
       header_text: "FFFFFF"
 
+scheduling:
+  enabled: true
+  job_name: aviation_spare_parts_daily_job
+
+  run_pipeline: true
+  generate_management_report: true
+  stop_report_when_pipeline_fails: true
+
+  lock_file: outputs/reports/scheduled_job.lock
+  latest_summary: outputs/reports/scheduled_job_summary.json
+  log_directory: outputs/logs
+
+  retention:
+    maximum_log_files: 30
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true
