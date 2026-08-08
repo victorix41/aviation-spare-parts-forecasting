@@ -1,44 +1,268 @@
 # Aviation Spare Parts Demand Forecasting
 
-An aviation inventory analytics, demand forecasting, inventory optimisation and
-agentic AI decision-support system.
+A Python-based aviation spare-parts demand forecasting, inventory
+optimisation, agentic advisory and management decision-support platform.
 
-## Intended Users
+## 1. Project Purpose
 
-- Accountable Manager
-- Procurement Manager
-- Finance Manager
-- Engineering Manager
-- Operations Manager
-- Quality Manager
+The platform supports aviation spare-parts planning and management
+decision-making through an integrated workflow covering:
 
-## Project Objectives
+- source-data ingestion and validation;
+- historical demand analytics;
+- intermittent-demand analysis;
+- forecast model selection and backtesting;
+- spare-parts demand forecasting;
+- inventory optimisation;
+- procurement prioritisation;
+- role-based agentic AI advisory;
+- management dashboards;
+- pipeline monitoring;
+- management reporting;
+- scheduling-ready execution;
+- production-readiness validation.
 
-- Analyse spare-parts inventory and consumption.
-- Forecast intermittent aviation spare-parts demand.
-- Calculate safety stock and reorder points.
-- Identify stockout and excess-inventory risks.
-- Generate explainable recommendations.
-- Preserve human review and approval for procurement decisions.
+The system is designed as a **decision-support platform**. It does not
+replace authorised management, engineering, quality, procurement or
+financial decision-making.
 
-## Technology Stack
+## 2. Governance Principles
+
+The application operates under the following controls:
+
+- no automatic purchase-order creation;
+- no automatic inventory write-back;
+- no automatic financial approval;
+- human approval is mandatory;
+- forecasts are advisory;
+- agentic AI recommendations are advisory;
+- evidence and assurance checks are required;
+- operational decisions remain the responsibility of authorised personnel.
+
+## 3. Technology Stack
+
+The principal technologies include:
 
 - Python 3.11
-- Pandas
+- pandas
+- NumPy
 - DuckDB
-- StatsForecast
-- Scikit-learn
 - Streamlit
-- Plotly and Altair
-- Pandera
-- Pytest
+- Plotly
+- openpyxl
+- PyYAML
+- pytest
 
-## Current Status
+The development environment uses Conda and WSL Ubuntu.
 
-Phase 1 — Project foundation.
+## 4. Project Structure
 
-## Run the Application
+```text
+aviation-spare-parts-forecasting/
+├── config/
+│   ├── settings.yaml
+│   └── workbook_mapping.yaml
+├── data/
+├── database/
+├── docs/
+├── outputs/
+│   ├── exports/
+│   ├── forecasts/
+│   ├── logs/
+│   └── reports/
+├── scripts/
+│   └── run_scheduled_job.sh
+├── src/
+│   ├── agents/
+│   ├── analytics/
+│   ├── dashboards/
+│   ├── data/
+│   ├── forecasting/
+│   ├── optimisation/
+│   ├── pipeline/
+│   ├── reporting/
+│   ├── scheduling/
+│   ├── utils/
+│   └── validation/
+├── tests/
+├── app.py
+├── pyproject.toml
+├── requirements.txt
+└── README.md
+```
+
+## 5. Environment
+
+Activate the project Conda environment:
 
 ```bash
 conda activate spare-parts-ai
+```
+
+Move to the project directory:
+
+```bash
+cd ~/Personal\ Projects/aviation-spare-parts-forecasting
+```
+
+## 6. Run Automated Tests
+
+Before operating or releasing the application:
+
+```bash
+pytest -v
+```
+
+All tests should pass.
+
+## 7. Run the End-to-End Pipeline
+
+```bash
+python -m src.pipeline.run_full_pipeline
+```
+
+The pipeline performs:
+
+1. Data ingestion and validation
+2. Demand analytics
+3. Forecast model selection
+4. Inventory optimisation
+5. Agentic advisory generation
+
+A successful run reports:
+
+```text
+Overall pipeline status: Passed
+Successful stages: 5
+Failed stages: 0
+```
+
+## 8. Run the Management Dashboard
+
+```bash
 streamlit run app.py
+```
+
+Open the application in a browser at:
+
+```text
+http://localhost:8501
+```
+
+The application provides the following management views:
+
+1. Accountable Manager
+2. Procurement Manager
+3. Finance Manager
+4. Engineering Manager
+5. Operations Manager
+6. Quality Manager
+7. Pipeline Monitor
+8. Management Report
+
+## 9. Generate the Management Report
+
+```bash
+python -m src.reporting.run_management_report
+```
+
+The generated Excel workbook is stored under:
+
+```text
+outputs/reports/
+```
+
+The report provides management-level forecasting, inventory,
+procurement, engineering, operational, quality and pipeline information.
+
+## 10. Run the Scheduling-Ready Workflow
+
+```bash
+python -m src.scheduling.run_scheduled_job
+```
+
+This executes:
+
+1. the complete pipeline;
+2. management-report generation;
+3. scheduled-job audit logging;
+4. JSON execution-summary generation; and
+5. concurrent-execution protection.
+
+A successful run reports:
+
+```text
+Overall status: Passed
+Stages completed: 2
+```
+
+Windows Task Scheduler deployment is optional and is currently deferred.
+
+## 11. Production-Readiness Validation
+
+Run:
+
+```bash
+python -m src.validation.run_production_readiness
+```
+
+The expected result for a healthy system is:
+
+```text
+PRODUCTION READINESS: PASSED
+```
+
+The detailed result is written to:
+
+```text
+outputs/reports/production_readiness_summary.json
+```
+
+## 12. Important Outputs
+
+Key generated outputs include:
+
+```text
+database/aviation_spares.duckdb
+
+outputs/reports/full_pipeline_summary.json
+outputs/reports/scheduled_job_summary.json
+outputs/reports/production_readiness_summary.json
+outputs/reports/aviation_spare_parts_management_report.xlsx
+
+outputs/logs/
+```
+
+Generated operational data, databases and reports should not be
+committed to Git unless explicitly required.
+
+## 13. Release Status
+
+The application has completed:
+
+- Phase 2 — Data ingestion and validation
+- Phase 3.1 — Demand analytics
+- Phase 3.2 — Forecast model development
+- Phase 3.3 — Forecast model selection
+- Phase 3.4 — Inventory optimisation
+- Phase 3.5 — Agentic AI advisory
+- Phase 3.6 — Management dashboards
+- Phase 4.1 — End-to-end pipeline
+- Phase 4.2 — Pipeline monitoring
+- Phase 4.3 — Management reporting
+- Phase 4.4 — Dashboard report download
+- Phase 4.5 — Scheduling-ready execution
+- Phase 4.6 — Scheduled-job monitoring and concurrency hardening
+- Phase 4.7 — Production-readiness validation
+- Phase 5 — Release documentation and handover
+
+## 14. Release
+
+Target release:
+
+```text
+v1.0.0
+```
+
+This release represents the first production-readiness-validated version
+of the aviation spare-parts forecasting and decision-support platform.
