@@ -50,4 +50,4 @@ outputs/exports/*
 !outputs/exports/.gitkeep
 
 # Streamlit secrets
-.streamlit/secrets.toml
+.streamlit/secrets.tomloutputs/logs/
