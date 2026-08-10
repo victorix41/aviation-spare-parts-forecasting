@@ -16,8 +16,12 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import (
     DashboardRepository,
+
 )
 
+from src.dashboards.forecast_explainability import (
+    render_forecast_explainability,
+)
 
 def _is_missing(
     value: object,
@@ -433,6 +437,13 @@ def render_management_drilldown(
     second_row[3].metric(
         "Lead time",
         lead_time_display,
+    )
+
+    st.divider()
+
+    render_forecast_explainability(
+        repository=repository,
+        part_number=part_number,
     )
 
     st.divider()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 from datetime import datetime
 
 import duckdb
@@ -1461,3 +1461,104 @@ class DashboardRepository:
             """,
             [part_number],
         )
+
+    def load_selected_forecast_model(
+        self,
+        part_number: str,
+    ) -> dict[str, Any]:
+        """Load selected forecast-model evidence."""
+
+        result = self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                demand_pattern,
+                selected_model,
+                selection_metric,
+                selection_score,
+                mae,
+                rmse,
+                wape,
+                bias,
+                validation_actual_total,
+                validation_forecast_total,
+                successful_model_count,
+                rejected_model_count,
+                forecast_confidence,
+                selection_reason
+            FROM selected_forecast_models
+            WHERE part_number = ?
+            """,
+            [part_number],
+        )
+
+        if result.empty:
+            return {}
+
+        return result.iloc[0].to_dict()
+
+
+    def load_forecast_backtest_results(
+        self,
+        part_number: str,
+    ) -> pd.DataFrame:
+        """Load candidate forecast-model results."""
+
+        return self.query(
+            """
+            SELECT
+                model_rank,
+                model_name,
+                status,
+                mae,
+                rmse,
+                wape,
+                bias,
+                selected,
+                model_parameters
+            FROM forecast_backtest_results
+            WHERE part_number = ?
+            ORDER BY
+                model_rank NULLS LAST,
+                model_name
+            """,
+            [part_number],
+        )
+
+
+    def load_part_demand_metrics(
+        self,
+        part_number: str,
+    ) -> dict[str, Any]:
+        """Load demand evidence for forecast explainability."""
+
+        result = self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                history_months,
+                total_quantity_issued,
+                issue_transactions,
+                active_demand_months,
+                zero_demand_months,
+                average_monthly_demand,
+                demand_standard_deviation,
+                coefficient_of_variation,
+                adi,
+                cv_squared,
+                demand_pattern,
+                xyz_class,
+                forecast_eligible,
+                demand_frequency_percent
+            FROM demand_metrics
+            WHERE part_number = ?
+            """,
+            [part_number],
+        )
+
+        if result.empty:
+            return {}
+
+        return result.iloc[0].to_dict()
