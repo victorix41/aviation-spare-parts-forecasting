@@ -1562,3 +1562,99 @@ class DashboardRepository:
             return {}
 
         return result.iloc[0].to_dict()
+
+    def load_recommendation_trace(
+        self,
+        recommendation_id: str,
+    ) -> dict[str, Any]:
+        """Load one agent recommendation for traceability."""
+
+        result = self.query(
+            """
+            SELECT
+                recommendation_id,
+                agent_name,
+                target_role,
+                recommendation_type,
+                priority,
+                part_number,
+                title,
+                recommendation,
+                rationale,
+                forecast_confidence,
+                evidence,
+                human_approval_required,
+                automatic_action_allowed,
+                status,
+                assurance_status,
+                approved_for_management_display
+            FROM agent_recommendations
+            WHERE recommendation_id = ?
+            LIMIT 1
+            """,
+            [recommendation_id],
+        )
+
+        if result.empty:
+            return {}
+
+        return result.iloc[0].to_dict()
+
+    def load_part_recommendation_traces(
+        self,
+        part_number: str,
+    ) -> pd.DataFrame:
+        """Load all management-display advisories for one part."""
+
+        return self.query(
+            """
+            SELECT
+                recommendation_id,
+                agent_name,
+                target_role,
+                recommendation_type,
+                priority,
+                title,
+                forecast_confidence,
+                status,
+                assurance_status,
+                approved_for_management_display
+            FROM agent_recommendations
+            WHERE part_number = ?
+            ORDER BY
+                CASE priority
+                    WHEN 'Critical' THEN 1
+                    WHEN 'High' THEN 2
+                    WHEN 'Medium' THEN 3
+                    WHEN 'Low' THEN 4
+                    ELSE 5
+                END,
+                agent_name
+            """,
+            [part_number],
+        )
+
+    def load_recommendation_assurance_findings(
+        self,
+        recommendation_id: str,
+    ) -> pd.DataFrame:
+        """Load assurance findings for one recommendation."""
+
+        return self.query(
+            """
+            SELECT
+                recommendation_id,
+                assurance_status,
+                finding_type,
+                finding_message,
+                evidence_complete,
+                governance_compliant,
+                approved_for_management_display
+            FROM agent_assurance_findings
+            WHERE recommendation_id = ?
+            ORDER BY
+                finding_type,
+                finding_message
+            """,
+            [recommendation_id],
+        )

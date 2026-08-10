@@ -23,6 +23,10 @@ from src.dashboards.forecast_explainability import (
     render_forecast_explainability,
 )
 
+from src.dashboards.advisory_traceability import (
+    render_advisory_traceability,
+)
+
 def _is_missing(
     value: object,
 ) -> bool:
@@ -620,3 +624,10 @@ def render_management_drilldown(
             "decision-support outputs only. "
             "Human approval remains required."
         )
+
+    st.divider()
+
+    render_advisory_traceability(
+        repository=repository,
+        part_number=part_number,
+    )
