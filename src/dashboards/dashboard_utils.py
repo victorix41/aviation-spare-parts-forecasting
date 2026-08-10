@@ -705,3 +705,104 @@ def determine_pipeline_freshness(
         status,
         age_hours,
     )
+
+def create_part_demand_history_chart(
+    dataframe: pd.DataFrame,
+):
+    """Create monthly demand history for one spare part."""
+
+    prepared = dataframe.copy()
+
+    prepared["demand_month"] = pd.to_datetime(
+        prepared["demand_month"],
+        errors="coerce",
+    )
+
+    figure = px.bar(
+        prepared,
+        x="demand_month",
+        y="quantity_issued",
+        labels={
+            "demand_month": "Month",
+            "quantity_issued": "Quantity issued",
+        },
+        title="Historical Monthly Demand",
+    )
+
+    figure.update_layout(
+        xaxis_title=None,
+        yaxis_title="Quantity issued",
+        showlegend=False,
+    )
+
+    return figure
+
+def create_part_inventory_position_chart(
+    decision_record: pd.Series,
+):
+    """Compare current balance, safety stock and reorder point."""
+
+    dataframe = pd.DataFrame(
+        {
+            "measure": [
+                "Current balance",
+                "Safety stock",
+                "Reorder point",
+                "12M forecast",
+                "Recommended order",
+            ],
+            "quantity": [
+                float(
+                    decision_record[
+                        "current_balance"
+                    ]
+                    or 0
+                ),
+                float(
+                    decision_record[
+                        "safety_stock"
+                    ]
+                    or 0
+                ),
+                float(
+                    decision_record[
+                        "reorder_point"
+                    ]
+                    or 0
+                ),
+                float(
+                    decision_record[
+                        "forecast_12m"
+                    ]
+                    or 0
+                ),
+                float(
+                    decision_record[
+                        "recommended_order_quantity"
+                    ]
+                    or 0
+                ),
+            ],
+        }
+    )
+
+    figure = px.bar(
+        dataframe,
+        x="measure",
+        y="quantity",
+        text="quantity",
+        title="Inventory and Forecast Position",
+    )
+
+    figure.update_traces(
+        texttemplate="%{text:,.0f}",
+        textposition="outside",
+    )
+
+    figure.update_layout(
+        xaxis_title=None,
+        yaxis_title="Quantity",
+        showlegend=False,
+    )
+
+    return figure

@@ -1258,3 +1258,206 @@ class DashboardRepository:
         return pd.DataFrame(
             rows
         )
+
+    def load_management_drilldown_parts(
+        self,
+        *,
+        stockout_risk: str | None = None,
+        engineering_criticality: str | None = None,
+        forecast_confidence: str | None = None,
+        limit: int = 100,
+    ) -> pd.DataFrame:
+        """Load management drill-down spare-part records."""
+
+        conditions = [
+            "1 = 1",
+        ]
+
+        parameters: list[object] = []
+
+        if stockout_risk:
+            conditions.append(
+                "stockout_risk = ?"
+            )
+            parameters.append(
+                stockout_risk
+            )
+
+        if engineering_criticality:
+            conditions.append(
+                "engineering_criticality = ?"
+            )
+            parameters.append(
+                engineering_criticality
+            )
+
+        if forecast_confidence:
+            conditions.append(
+                "forecast_confidence = ?"
+            )
+            parameters.append(
+                forecast_confidence
+            )
+
+        parameters.append(
+            int(limit)
+        )
+
+        where_clause = " AND ".join(
+            conditions
+        )
+
+        return self.query(
+            f"""
+            SELECT
+                part_number,
+                description,
+                engineering_criticality,
+                stockout_risk,
+                procurement_priority,
+                forecast_confidence,
+                selected_forecast_model,
+                current_balance,
+                average_monthly_demand,
+                forecast_3m,
+                forecast_6m,
+                forecast_12m,
+                safety_stock,
+                reorder_point,
+                months_of_stock_cover,
+                estimated_stockout_months,
+                recommended_order_quantity,
+                procurement_value_usd,
+                average_lead_time_days,
+                recommendation_status,
+                recommendation_reason
+            FROM inventory_optimisation_results
+            WHERE {where_clause}
+            ORDER BY
+                procurement_priority,
+                procurement_value_usd DESC,
+                part_number
+            LIMIT ?
+            """,
+            parameters,
+        )
+
+    def load_part_forecast_history(
+        self,
+        part_number: str,
+    ) -> pd.DataFrame:
+        """Load historical monthly demand for one spare part."""
+
+        return self.query(
+            """
+            SELECT
+                demand_month,
+                quantity_issued,
+                issued_value_usd,
+                issue_transactions,
+                demand_occurred
+            FROM monthly_demand
+            WHERE part_number = ?
+            ORDER BY demand_month
+            """,
+            [
+                part_number,
+            ],
+        )
+
+    def load_part_agent_advisories(
+        self,
+        part_number: str,
+    ) -> pd.DataFrame:
+        """Load assured agent recommendations for one spare part."""
+
+        if not self.table_exists(
+            "agent_recommendations"
+        ):
+            return pd.DataFrame()
+
+        return self.query(
+            """
+            SELECT
+                recommendation_id,
+                agent_name,
+                target_role,
+                recommendation_type,
+                priority,
+                part_number,
+                title,
+                recommendation,
+                rationale,
+                forecast_confidence,
+                evidence,
+                human_approval_required,
+                automatic_action_allowed,
+                status,
+                assurance_status,
+                approved_for_management_display
+            FROM agent_recommendations
+            WHERE part_number = ?
+            AND approved_for_management_display = TRUE
+            ORDER BY
+                CASE priority
+                    WHEN 'Critical' THEN 1
+                    WHEN 'High' THEN 2
+                    WHEN 'Medium' THEN 3
+                    WHEN 'Low' THEN 4
+                    ELSE 5
+                END,
+                agent_name
+            """,
+            [
+                part_number,
+            ],
+        )
+
+    def load_part_decision_record(
+        self,
+        part_number: str,
+    ) -> pd.DataFrame:
+        """Load the detailed optimisation decision record for one part."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                engineering_criticality,
+                demand_pattern,
+                selected_forecast_model,
+                forecast_confidence,
+                current_balance,
+                unit_price_usd,
+                inventory_value_usd,
+                average_monthly_demand,
+                demand_standard_deviation,
+                forecast_3m,
+                forecast_6m,
+                forecast_12m,
+                average_lead_time_days,
+                lead_time_months,
+                demand_during_lead_time,
+                service_level,
+                service_level_z_score,
+                safety_stock,
+                reorder_point,
+                economic_order_quantity,
+                target_stock,
+                recommended_order_quantity,
+                months_of_stock_cover,
+                estimated_stockout_months,
+                stockout_risk,
+                procurement_priority,
+                procurement_value_usd,
+                automatic_purchase_order_allowed,
+                human_approval_required,
+                recommendation_status,
+                recommendation_reason
+            FROM inventory_optimisation_results
+            WHERE part_number = ?
+            LIMIT 1
+            """,
+            [part_number],
+        )

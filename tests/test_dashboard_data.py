@@ -358,3 +358,106 @@ def test_pipeline_freshness_is_stale() -> None:
 
     assert status == "Stale"
     assert age_hours > 24
+
+def test_management_drilldown_parts(
+    tmp_path: Path,
+) -> None:
+    """Management drill-down should return optimisation records."""
+
+    database_path = (
+        tmp_path
+        / "dashboard_test.duckdb"
+    )
+
+    with duckdb.connect(
+        str(database_path)
+    ) as connection:
+        connection.execute(
+            """
+            CREATE TABLE inventory_optimisation_results (
+                part_number VARCHAR,
+                description VARCHAR,
+                engineering_criticality VARCHAR,
+                stockout_risk VARCHAR,
+                procurement_priority INTEGER,
+                forecast_confidence VARCHAR,
+                selected_forecast_model VARCHAR,
+                current_balance DOUBLE,
+                average_monthly_demand DOUBLE,
+                forecast_3m DOUBLE,
+                forecast_6m DOUBLE,
+                forecast_12m DOUBLE,
+                safety_stock DOUBLE,
+                reorder_point DOUBLE,
+                months_of_stock_cover DOUBLE,
+                estimated_stockout_months DOUBLE,
+                recommended_order_quantity DOUBLE,
+                procurement_value_usd DOUBLE,
+                average_lead_time_days DOUBLE,
+                recommendation_status VARCHAR,
+                recommendation_reason VARCHAR
+            )
+            """
+        )
+
+        connection.execute(
+            """
+            INSERT INTO inventory_optimisation_results
+            VALUES (
+                'PN-001',
+                'Test Part',
+                'Critical',
+                'Critical',
+                1,
+                'Medium',
+                'croston_sba',
+                2,
+                3.5,
+                10,
+                20,
+                40,
+                5,
+                8,
+                0.57,
+                0.57,
+                25,
+                12500.00,
+                45,
+                'Order review required',
+                'Critical stock risk.'
+            )
+            """
+        )
+
+    repository = DashboardRepository(
+        database_path
+    )
+
+    result = (
+        repository
+        .load_management_drilldown_parts(
+            stockout_risk="Critical",
+            limit=10,
+        )
+    )
+
+    assert isinstance(
+        result,
+        pd.DataFrame,
+    )
+
+    assert len(result) == 1
+
+    assert (
+        result.iloc[0][
+            "part_number"
+        ]
+        == "PN-001"
+    )
+
+    assert (
+        result.iloc[0][
+            "stockout_risk"
+        ]
+        == "Critical"
+    )

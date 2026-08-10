@@ -11,6 +11,10 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import DashboardRepository
 
+from src.dashboards.management_drilldown import (
+    render_management_drilldown,
+)
+
 
 CRITICALITY_ORDER = [
     "Critical",
@@ -285,3 +289,11 @@ def render_engineering_dashboard(
             advisories,
             height=420,
         )
+
+    st.divider()
+
+    render_management_drilldown(
+        repository=repository,
+        title="Engineering Spare-Part Drill-Down",
+        default_stockout_risk="High",
+    )

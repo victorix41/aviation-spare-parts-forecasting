@@ -13,6 +13,10 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import DashboardRepository
 
+from src.dashboards.management_drilldown import (
+    render_management_drilldown,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -294,3 +298,10 @@ def render_finance_dashboard(
             advisories,
             height=420,
         )
+
+    st.divider()
+
+    render_management_drilldown(
+        repository=repository,
+        title="Finance Spare-Part Drill-Down",
+    )

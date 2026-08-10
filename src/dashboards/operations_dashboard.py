@@ -11,6 +11,10 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import DashboardRepository
 
+from src.dashboards.management_drilldown import (
+    render_management_drilldown,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -256,3 +260,11 @@ def render_operations_dashboard(
             advisories,
             height=420,
         )
+
+    st.divider()
+
+    render_management_drilldown(
+        repository=repository,
+        title="Operations Spare-Part Drill-Down",
+        default_stockout_risk="Critical",
+    )

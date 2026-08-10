@@ -17,6 +17,10 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import DashboardRepository
 
+from src.dashboards.management_drilldown import (
+    render_management_drilldown,
+)
+
 
 def render_readiness_header(
     repository: DashboardRepository,
@@ -558,6 +562,13 @@ def render_executive_dashboard(
     render_part_drilldown(
         repository,
         settings,
+    )
+
+    st.divider()
+
+    render_management_drilldown(
+        repository=repository,
+        title="Executive Spare-Part Drill-Down",
     )
 
     render_data_status(
