@@ -1658,3 +1658,48 @@ class DashboardRepository:
             """,
             [recommendation_id],
         )
+
+    def load_management_alert_inventory(
+        self,
+    ) -> pd.DataFrame:
+        """Load optimisation evidence used by management alerts."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                description,
+                engineering_criticality,
+                stockout_risk,
+                forecast_confidence,
+                current_balance,
+                recommended_order_quantity,
+                procurement_value_usd,
+                average_lead_time_days,
+                recommendation_status
+            FROM inventory_optimisation_results
+            ORDER BY
+                procurement_priority,
+                procurement_value_usd DESC
+            """
+        )
+
+
+    def load_management_alert_assurance(
+        self,
+    ) -> pd.DataFrame:
+        """Load agent assurance evidence used by management alerts."""
+
+        return self.query(
+            """
+            SELECT
+                recommendation_id,
+                assurance_status,
+                finding_type,
+                finding_message,
+                evidence_complete,
+                governance_compliant,
+                approved_for_management_display
+            FROM agent_assurance_findings
+            """
+        )

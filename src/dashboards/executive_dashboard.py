@@ -21,6 +21,9 @@ from src.dashboards.management_drilldown import (
     render_management_drilldown,
 )
 
+from src.dashboards.management_alerts import (
+    render_management_alerts,
+)
 
 def render_readiness_header(
     repository: DashboardRepository,
@@ -573,4 +576,11 @@ def render_executive_dashboard(
 
     render_data_status(
         repository
+    )
+
+    st.divider()
+
+    render_management_alerts(
+        repository=repository,
+        settings=settings,
     )

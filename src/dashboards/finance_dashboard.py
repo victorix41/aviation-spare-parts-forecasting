@@ -17,6 +17,10 @@ from src.dashboards.management_drilldown import (
     render_management_drilldown,
 )
 
+from src.dashboards.management_alerts import (
+    render_management_alerts,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -304,4 +308,10 @@ def render_finance_dashboard(
     render_management_drilldown(
         repository=repository,
         title="Finance Spare-Part Drill-Down",
+    )
+
+    render_management_alerts(
+        repository=repository,
+        settings=settings,
+        target_role="Finance Manager",
     )

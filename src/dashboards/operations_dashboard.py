@@ -15,6 +15,10 @@ from src.dashboards.management_drilldown import (
     render_management_drilldown,
 )
 
+from src.dashboards.management_alerts import (
+    render_management_alerts,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -267,4 +271,10 @@ def render_operations_dashboard(
         repository=repository,
         title="Operations Spare-Part Drill-Down",
         default_stockout_risk="Critical",
+    )
+
+    render_management_alerts(
+        repository=repository,
+        settings=settings,
+        target_role="Operations Manager",
     )

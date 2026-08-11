@@ -17,6 +17,10 @@ from src.dashboards.management_drilldown import (
     render_management_drilldown,
 )
 
+from src.dashboards.management_alerts import (
+    render_management_alerts,
+)
+
 RISK_ORDER = [
     "Critical",
     "High",
@@ -481,4 +485,10 @@ def render_procurement_dashboard(
     render_management_drilldown(
         repository=repository,
         title="Procurement Spare-Part Drill-Down",
+    )
+
+    render_management_alerts(
+        repository=repository,
+        settings=settings,
+        target_role="Procurement Manager",
     )

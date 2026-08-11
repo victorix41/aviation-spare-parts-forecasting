@@ -281,6 +281,34 @@ dashboard:
     download_label: Download Management Report
     generate_label: Generate Latest Management Report
 
+  management_alerts:
+    enabled: true
+
+    severity_filter_default:
+      - Critical
+      - High
+
+    thresholds:
+      finance:
+        high_single_part_value_usd: 100000
+
+      operations:
+        critical_stockout_risk:
+          - Critical
+
+      engineering:
+        high_risk_levels:
+          - Critical
+          - High
+        low_forecast_confidence:
+          - Low
+
+      quality:
+        require_assurance_passed: true
+        require_evidence_complete: true
+        require_governance_compliant: true
+        require_management_display_approval: true
+
 reporting:
   management_report:
     enabled: true
