@@ -1703,3 +1703,90 @@ class DashboardRepository:
             FROM agent_assurance_findings
             """
         )
+
+    def load_data_quality_inventory(
+        self,
+    ) -> pd.DataFrame:
+        """Load inventory source data for data-quality monitoring."""
+
+        return self.query(
+            """
+            SELECT
+                no,
+                description,
+                part_number,
+                serial_number,
+                unit_price_usd,
+                purchased_quantity,
+                purchase_order_number,
+                total_price_usd,
+                purchase_order_date,
+                delivery_order_number,
+                delivery_order_date,
+                batch_number,
+                repair_order_number,
+                top_assembly_part_number,
+                top_assembly_serial_number,
+                quantity_issued,
+                date_issued,
+                balance_quantity,
+                repair_order_status,
+                record_classification
+            FROM inventory
+            """
+        )
+
+
+    def load_data_quality_issue_history(
+        self,
+    ) -> pd.DataFrame:
+        """Load issue-history source data for data-quality monitoring."""
+
+        return self.query(
+            """
+            SELECT
+                transaction_id,
+                repair_order,
+                part_id,
+                part_number,
+                description,
+                issue_date,
+                quantity_issued,
+                unit_price_usd,
+                issued_value_usd,
+                top_assembly_part_number,
+                top_assembly_serial_number,
+                issue_type,
+                repair_order_status,
+                abc_class,
+                engineering_criticality,
+                data_classification
+            FROM issue_history
+            """
+        )
+
+
+    def load_data_quality_repair_orders(
+        self,
+    ) -> pd.DataFrame:
+        """Load repair-order source data for data-quality monitoring."""
+
+        return self.query(
+            """
+            SELECT
+                repair_order,
+                part_id,
+                part_number,
+                description,
+                top_assembly_part_number,
+                top_assembly_serial_number,
+                open_date,
+                completion_date,
+                repair_order_status,
+                maintenance_type,
+                operational_priority,
+                planned_quantity,
+                data_classification
+            FROM repair_orders
+            """
+        )

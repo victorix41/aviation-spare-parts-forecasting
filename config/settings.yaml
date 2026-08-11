@@ -309,6 +309,73 @@ dashboard:
         require_governance_compliant: true
         require_management_display_approval: true
 
+  data_quality_monitoring:
+    enabled: true
+
+    severity_filter_default:
+      - Critical
+      - High
+      - Medium
+
+    required_fields:
+      inventory:
+        - "no"
+        - part_number
+        - description
+        - unit_price_usd
+        - balance_quantity
+
+      issue_history:
+        - transaction_id
+        - repair_order
+        - part_number
+        - issue_date
+        - quantity_issued
+
+      repair_orders:
+        - repair_order
+        - part_number
+        - open_date
+        - repair_order_status
+
+    duplicate_keys:
+      inventory:
+        - "no"
+
+      issue_history:
+        - transaction_id
+
+      repair_orders:
+        - repair_order
+
+    non_negative_fields:
+      inventory:
+        - unit_price_usd
+        - purchased_quantity
+        - total_price_usd
+        - quantity_issued
+        - balance_quantity
+
+      issue_history:
+        - quantity_issued
+        - unit_price_usd
+        - issued_value_usd
+
+      repair_orders:
+        - planned_quantity
+
+    date_fields:
+      issue_history:
+        - issue_date
+
+      repair_orders:
+        - open_date
+
+    freshness:
+      issue_history:
+        date_field: issue_date
+        stale_after_days: 45
+
 reporting:
   management_report:
     enabled: true

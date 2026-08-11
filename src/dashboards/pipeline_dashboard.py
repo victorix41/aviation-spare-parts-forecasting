@@ -26,6 +26,9 @@ from src.scheduling.job_monitoring import (
     scheduled_job_stages_frame,
 )
 
+from src.dashboards.data_quality_dashboard import (
+    render_data_quality_monitoring,
+)
 
 def render_pipeline_status_banner(
     *,
@@ -615,6 +618,13 @@ def render_pipeline_dashboard(
                 f"Return code: {row.return_code}\n\n"
                 f"Error: {row.error_message}"
             )
+
+    st.divider()
+
+    render_data_quality_monitoring(
+        repository=repository,
+        settings=settings,
+    )
 
     st.divider()
 

@@ -17,12 +17,18 @@ from src.dashboards.dashboard_utils import (
 )
 from src.dashboards.data_access import DashboardRepository
 
+#from src.dashboards.data_quality_dashboard import render_data_quality_monitoring
+
 from src.dashboards.management_drilldown import (
     render_management_drilldown,
 )
 
 from src.dashboards.management_alerts import (
     render_management_alerts,
+)
+
+from src.dashboards.data_quality_dashboard import (
+    render_data_quality_monitoring,
 )
 
 def render_readiness_header(
@@ -577,6 +583,13 @@ def render_executive_dashboard(
     render_data_status(
         repository
     )
+
+    st.divider()
+
+    render_data_quality_monitoring(
+        repository=repository,
+        settings=settings,
+)
 
     st.divider()
 
