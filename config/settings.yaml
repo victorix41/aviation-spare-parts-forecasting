@@ -9,6 +9,7 @@ paths:
   synthetic_data: data/synthetic
   processed_data: data/processed
   database: database/aviation_spares.duckdb
+  management_audit_database: database/management_audit.duckdb
   forecasts: outputs/forecasts
   reports: outputs/reports
   exports: outputs/exports
@@ -375,6 +376,22 @@ dashboard:
       issue_history:
         date_field: issue_date
         stale_after_days: 45
+
+  decision_audit:
+    enabled: true
+
+    allowed_decisions:
+      - Accepted
+      - Deferred
+      - Rejected
+
+    require_decision_reason: true
+
+    governance:
+      allow_operational_writeback: false
+      allow_purchase_order_creation: false
+      allow_inventory_update: false
+      allow_financial_approval: false
 
 reporting:
   management_report:

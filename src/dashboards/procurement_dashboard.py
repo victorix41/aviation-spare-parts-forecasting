@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -269,6 +271,7 @@ def apply_filters(
 def render_procurement_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Procurement Manager dashboard."""
 
@@ -484,11 +487,15 @@ def render_procurement_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Procurement Spare-Part Drill-Down",
     )
 
     render_management_alerts(
-        repository=repository,
-        settings=settings,
-        target_role="Procurement Manager",
-    )
+            repository=repository,
+            settings=settings,
+            target_role="Procurement Manager",
+        )

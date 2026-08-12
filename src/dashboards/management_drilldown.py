@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import math
 
 import pandas as pd
@@ -25,6 +27,10 @@ from src.dashboards.forecast_explainability import (
 
 from src.dashboards.advisory_traceability import (
     render_advisory_traceability,
+)
+
+from src.dashboards.decision_audit_dashboard import (
+    render_decision_audit,
 )
 
 def _is_missing(
@@ -120,6 +126,8 @@ def _safe_text(
 def render_management_drilldown(
     *,
     repository: DashboardRepository,
+    audit_database_path: Path,
+    decision_audit_settings: dict,
     title: str = "Management Drill-Down",
     default_stockout_risk: str | None = None,
 ) -> None:
@@ -630,4 +638,17 @@ def render_management_drilldown(
     render_advisory_traceability(
         repository=repository,
         part_number=part_number,
+    )
+
+    st.divider()
+
+    render_decision_audit(
+        repository=repository,
+        audit_database_path=audit_database_path,
+        part_number=part_number,
+        settings={
+            "decision_audit": (
+                decision_audit_settings
+            ),
+        },
     )

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -179,6 +181,7 @@ def create_confidence_chart(
 def render_engineering_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Engineering Manager dashboard."""
 
@@ -298,6 +301,10 @@ def render_engineering_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Engineering Spare-Part Drill-Down",
         default_stockout_risk="High",
     )

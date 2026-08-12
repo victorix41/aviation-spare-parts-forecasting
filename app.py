@@ -181,6 +181,13 @@ def main() -> None:
         / settings["paths"]["reports"]
     )
 
+    audit_database_path = (
+        PROJECT_ROOT
+        / settings["paths"][
+            "management_audit_database"
+        ]
+    )
+
     try:
         repository = DashboardRepository(
             database_path
@@ -190,36 +197,42 @@ def main() -> None:
             render_executive_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Procurement Manager":
             render_procurement_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Finance Manager":
             render_finance_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Engineering Manager":
             render_engineering_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Operations Manager":
             render_operations_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Quality Manager":
             render_quality_dashboard(
                 repository,
                 dashboard_settings,
+                audit_database_path,
             )
 
         elif selected_page == "Pipeline Monitor":

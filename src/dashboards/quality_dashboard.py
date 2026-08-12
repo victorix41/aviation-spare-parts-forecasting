@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -293,6 +295,7 @@ def apply_quality_filters(
 def render_quality_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Quality Manager dashboard."""
 
@@ -554,6 +557,10 @@ def render_quality_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Quality Spare-Part Drill-Down",
     )
 

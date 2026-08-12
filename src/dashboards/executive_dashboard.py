@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from anyio import Path
 import streamlit as st
 
 from src.dashboards.dashboard_utils import (
@@ -499,6 +502,7 @@ def render_data_status(
 def render_executive_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Accountable Manager dashboard."""
 
@@ -577,6 +581,10 @@ def render_executive_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Executive Spare-Part Drill-Down",
     )
 

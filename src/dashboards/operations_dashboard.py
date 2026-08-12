@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -269,6 +271,10 @@ def render_operations_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Operations Spare-Part Drill-Down",
         default_stockout_risk="Critical",
     )

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -176,6 +178,7 @@ def create_top_exposure_chart(
 def render_finance_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Finance Manager dashboard."""
 
@@ -307,6 +310,10 @@ def render_finance_dashboard(
 
     render_management_drilldown(
         repository=repository,
+        audit_database_path=audit_database_path,
+        decision_audit_settings=settings[
+            "decision_audit"
+        ],
         title="Finance Spare-Part Drill-Down",
     )
 
