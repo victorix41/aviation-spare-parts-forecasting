@@ -34,6 +34,10 @@ from src.dashboards.data_quality_dashboard import (
     render_data_quality_monitoring,
 )
 
+from src.dashboards.decision_analytics_dashboard import (
+    render_decision_analytics,
+)
+
 def render_readiness_header(
     repository: DashboardRepository,
     settings: dict,
@@ -588,9 +592,18 @@ def render_executive_dashboard(
         title="Executive Spare-Part Drill-Down",
     )
 
+    st.divider()
+
+    render_decision_analytics(
+        audit_database_path=audit_database_path,
+        settings=settings,
+    )
+
     render_data_status(
         repository
     )
+
+
 
     st.divider()
 

@@ -21,6 +21,10 @@ from src.dashboards.management_alerts import (
     render_management_alerts,
 )
 
+from src.dashboards.decision_analytics_dashboard import (
+    render_decision_analytics,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -151,6 +155,7 @@ def create_lead_time_risk_chart(
 def render_operations_dashboard(
     repository: DashboardRepository,
     settings: dict,
+    audit_database_path: Path,
 ) -> None:
     """Render the Operations Manager dashboard."""
 
@@ -277,6 +282,14 @@ def render_operations_dashboard(
         ],
         title="Operations Spare-Part Drill-Down",
         default_stockout_risk="Critical",
+    )
+
+    st.divider()
+
+    render_decision_analytics(
+        audit_database_path=audit_database_path,
+        settings=settings,
+        target_role="Operations Manager",
     )
 
     render_management_alerts(

@@ -21,6 +21,10 @@ from src.dashboards.management_alerts import (
     render_management_alerts,
 )
 
+from src.dashboards.decision_analytics_dashboard import (
+    render_decision_analytics,
+)
+
 
 CRITICALITY_ORDER = [
     "Critical",
@@ -307,6 +311,14 @@ def render_engineering_dashboard(
         ],
         title="Engineering Spare-Part Drill-Down",
         default_stockout_risk="High",
+    )
+
+    st.divider()
+
+    render_decision_analytics(
+        audit_database_path=audit_database_path,
+        settings=settings,
+        target_role="Engineering Manager",
     )
 
     render_management_alerts(

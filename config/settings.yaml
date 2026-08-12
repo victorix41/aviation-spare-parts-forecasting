@@ -393,6 +393,15 @@ dashboard:
       allow_inventory_update: false
       allow_financial_approval: false
 
+  decision_analytics:
+    enabled: true
+    recent_decision_limit: 25
+
+    decision_order:
+      - Accepted
+      - Deferred
+      - Rejected
+
 reporting:
   management_report:
     enabled: true

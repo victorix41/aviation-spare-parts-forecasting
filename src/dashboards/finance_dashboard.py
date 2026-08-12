@@ -23,6 +23,10 @@ from src.dashboards.management_alerts import (
     render_management_alerts,
 )
 
+from src.dashboards.decision_analytics_dashboard import (
+    render_decision_analytics,
+)
+
 
 RISK_ORDER = [
     "Critical",
@@ -315,6 +319,14 @@ def render_finance_dashboard(
             "decision_audit"
         ],
         title="Finance Spare-Part Drill-Down",
+    )
+
+    st.divider()
+
+    render_decision_analytics(
+        audit_database_path=audit_database_path,
+        settings=settings,
+        target_role="Finance Manager",
     )
 
     render_management_alerts(

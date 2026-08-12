@@ -298,3 +298,10 @@ class DecisionAuditRepository:
                 "Unable to load management "
                 f"decision history: {exc}"
             ) from exc
+
+    def load_all_history(
+        self,
+    ) -> pd.DataFrame:
+        """Load the complete management decision audit history."""
+
+        return self.load_history()
