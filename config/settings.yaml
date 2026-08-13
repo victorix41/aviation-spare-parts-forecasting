@@ -472,6 +472,14 @@ production_readiness:
     require_no_automatic_purchase_orders: true
     require_no_inventory_writeback: true
 
+  assurance:
+    require_data_quality_passed: true
+    require_agent_assurance: true
+    require_decision_audit_available: true
+
+  decision_audit:
+    required_table: management_decision_audit
+
 governance:
   allow_automatic_purchase_orders: false
   require_human_approval: true

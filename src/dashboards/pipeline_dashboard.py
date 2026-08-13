@@ -30,6 +30,10 @@ from src.dashboards.data_quality_dashboard import (
     render_data_quality_monitoring,
 )
 
+from src.dashboards.production_readiness_dashboard import (
+    render_production_readiness,
+)
+
 def render_pipeline_status_banner(
     *,
     overall_status: str,
@@ -363,6 +367,7 @@ def render_pipeline_dashboard(
     settings: dict,
     *,
     project_root: Path,
+    reports_directory: Path,
     scheduling_settings: dict,
 ) -> None:
     """Render the complete pipeline-monitoring dashboard."""
@@ -625,6 +630,14 @@ def render_pipeline_dashboard(
         repository=repository,
         settings=settings,
     )
+
+    st.divider()
+
+    render_production_readiness(
+        project_root=project_root,
+        reports_directory=reports_directory,
+    ),
+
 
     st.divider()
 

@@ -240,6 +240,7 @@ def main() -> None:
                 repository,
                 dashboard_settings,
                 project_root=PROJECT_ROOT,
+                reports_directory=reports_directory,
                 scheduling_settings=settings[
                     "scheduling"
                 ],

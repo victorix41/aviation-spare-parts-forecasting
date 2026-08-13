@@ -381,6 +381,245 @@ def check_governance(
         ),
     ]
 
+def check_data_quality_assurance(
+    *,
+    finding_count: int,
+    critical_count: int,
+    high_count: int,
+    required: bool = True,
+) -> ReadinessCheck:
+    """Confirm data quality is acceptable for governed use."""
+
+    if not required:
+        return ReadinessCheck(
+            check_name="Data-quality assurance",
+            status="Passed",
+            message=(
+                "Data-quality assurance is not "
+                "required by readiness settings."
+            ),
+        )
+
+    if critical_count > 0:
+        return ReadinessCheck(
+            check_name="Data-quality assurance",
+            status="Failed",
+            message=(
+                f"{critical_count:,} critical "
+                "data-quality finding(s) remain open."
+            ),
+        )
+
+    if high_count > 0:
+        return ReadinessCheck(
+            check_name="Data-quality assurance",
+            status="Failed",
+            message=(
+                f"{high_count:,} high-severity "
+                "data-quality finding(s) remain open."
+            ),
+        )
+
+    return ReadinessCheck(
+        check_name="Data-quality assurance",
+        status="Passed",
+        message=(
+            "No Critical or High data-quality "
+            "findings were identified. "
+            f"Total findings: {finding_count:,}."
+        ),
+    )
+
+
+def check_agent_assurance(
+    database_path: Path,
+    *,
+    required: bool = True,
+) -> ReadinessCheck:
+    """Confirm management-visible agent outputs passed assurance."""
+
+    if not required:
+        return ReadinessCheck(
+            check_name="Agent assurance",
+            status="Passed",
+            message=(
+                "Agent assurance is not required "
+                "by readiness settings."
+            ),
+        )
+
+    if not database_path.is_file():
+        return ReadinessCheck(
+            check_name="Agent assurance",
+            status="Failed",
+            message=(
+                "Analytics database is unavailable "
+                "for agent-assurance validation."
+            ),
+        )
+
+    try:
+        with duckdb.connect(
+            str(database_path),
+            read_only=True,
+        ) as connection:
+            result = connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS total_records,
+                    SUM(
+                        CASE
+                            WHEN assurance_status = 'Passed'
+                             AND evidence_complete = TRUE
+                             AND governance_compliant = TRUE
+                             AND approved_for_management_display = TRUE
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS passed_records
+                FROM agent_assurance_findings
+                """
+            ).fetchone()
+    except Exception as exc:
+        return ReadinessCheck(
+            check_name="Agent assurance",
+            status="Failed",
+            message=(
+                "Agent-assurance validation failed: "
+                f"{exc}"
+            ),
+        )
+
+    total_records = int(
+        result[0] or 0
+    )
+
+    passed_records = int(
+        result[1] or 0
+    )
+
+    if total_records == 0:
+        return ReadinessCheck(
+            check_name="Agent assurance",
+            status="Failed",
+            message=(
+                "No agent-assurance records "
+                "are available."
+            ),
+        )
+
+    if passed_records != total_records:
+        failed_records = (
+            total_records
+            - passed_records
+        )
+
+        return ReadinessCheck(
+            check_name="Agent assurance",
+            status="Failed",
+            message=(
+                f"{failed_records:,} of "
+                f"{total_records:,} agent-assurance "
+                "record(s) do not satisfy management "
+                "display requirements."
+            ),
+        )
+
+    return ReadinessCheck(
+        check_name="Agent assurance",
+        status="Passed",
+        message=(
+            f"All {total_records:,} agent-assurance "
+            "record(s) satisfy evidence, governance "
+            "and management-display requirements."
+        ),
+    )
+
+
+def check_decision_audit(
+    audit_database_path: Path,
+    *,
+    required_table: str,
+    required: bool = True,
+) -> ReadinessCheck:
+    """Confirm the management decision audit store is available."""
+
+    if not required:
+        return ReadinessCheck(
+            check_name="Management decision audit",
+            status="Passed",
+            message=(
+                "Management decision-audit availability "
+                "is not required by readiness settings."
+            ),
+        )
+
+    if not audit_database_path.is_file():
+        return ReadinessCheck(
+            check_name="Management decision audit",
+            status="Failed",
+            message=(
+                "Management audit database was not found: "
+                f"{audit_database_path}"
+            ),
+        )
+
+    try:
+        with duckdb.connect(
+            str(audit_database_path),
+            read_only=True,
+        ) as connection:
+            table_result = connection.execute(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = 'main'
+                  AND table_name = ?
+                """,
+                [required_table],
+            ).fetchone()
+
+            table_exists = bool(
+                table_result
+                and table_result[0] > 0
+            )
+
+            if not table_exists:
+                return ReadinessCheck(
+                    check_name="Management decision audit",
+                    status="Failed",
+                    message=(
+                        "Required management audit table "
+                        f"'{required_table}' was not found."
+                    ),
+                )
+
+            row_count = int(
+                connection.execute(
+                    f'SELECT COUNT(*) '
+                    f'FROM "{required_table}"'
+                ).fetchone()[0]
+            )
+
+    except Exception as exc:
+        return ReadinessCheck(
+            check_name="Management decision audit",
+            status="Failed",
+            message=(
+                "Management decision-audit validation "
+                f"failed: {exc}"
+            ),
+        )
+
+    return ReadinessCheck(
+        check_name="Management decision audit",
+        status="Passed",
+        message=(
+            "Management decision audit is available. "
+            f"Recorded decisions: {row_count:,}."
+        ),
+    )
+
 
 def determine_overall_status(
     checks: list[ReadinessCheck],
