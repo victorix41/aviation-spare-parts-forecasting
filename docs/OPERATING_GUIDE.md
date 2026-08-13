@@ -139,7 +139,13 @@ Use the Pipeline Monitor to review:
 - scheduled-job freshness;
 - scheduled workflow stages;
 - job-lock status;
-- recent scheduled-job logs.
+- recent scheduled-job logs;
+- production-readiness and governance-assurance status;
+- data-quality monitoring status;
+- required-table availability;
+- human-approval governance status;
+- automatic-purchasing control status; and
+- inventory write-back control status.
 
 ## 11. Management Report
 
@@ -152,7 +158,71 @@ The workbook is also available under:
 outputs/reports/
 ```
 
-## 12. Production-Readiness Check
+## 12. Management Decision Review
+
+Management dashboards provide governed decision-support capabilities for
+assured agent recommendations.
+
+Where a management decision audit is available, authorised personnel may
+record a recommendation as:
+
+- Accepted
+- Deferred
+- Rejected
+
+A decision reason must be recorded.
+
+The optional reviewer reference may be used to record a name, initials,
+role or internal review reference.
+
+Recording a management decision creates an audit record only.
+
+It does not:
+
+- create or approve a purchase order;
+- update inventory;
+- approve expenditure;
+- execute an operational action; or
+- replace required engineering, quality, procurement, finance or
+  operational approval.
+
+Management decisions remain subject to authorised human review.
+
+## 13. Management Decision Analytics
+
+Management decision analytics are available within the applicable
+management dashboards.
+
+The analytics provide visibility of:
+
+- total recorded decisions;
+- Accepted decisions;
+- Deferred decisions;
+- Rejected decisions;
+- parts reviewed;
+- recommendations reviewed;
+- decision breakdown by management role;
+- decision breakdown by recommendation priority; and
+- recent management decisions.
+
+The analytics are derived from the management decision audit database.
+
+They are provided for management oversight and traceability only and do
+not update any operational system.
+
+## 14. Management Alerts and Exceptions
+
+Management dashboards may display configurable alerts and exceptions
+derived from validated analytical and advisory outputs.
+
+Alerts support management attention and prioritisation. They do not
+constitute automatic operational instructions.
+
+Critical or high-priority alerts should be reviewed by the appropriate
+authorised manager together with the supporting evidence before any
+management action is taken.
+
+## 15. Production-Readiness Check
 
 Before release or formal demonstration, run:
 
@@ -166,7 +236,7 @@ Required result:
 PRODUCTION READINESS: PASSED
 ```
 
-## 13. Stop Streamlit
+## 16. Stop Streamlit
 
 Use:
 
@@ -176,7 +246,7 @@ Ctrl + C
 
 in the terminal running Streamlit.
 
-## 14. Source-Control Procedure
+## 17. Source-Control Procedure
 
 Check changes:
 
@@ -205,7 +275,7 @@ Expected:
 nothing to commit, working tree clean
 ```
 
-## 15. Scheduling Deployment Status
+## 18. Scheduling Deployment Status
 
 The scheduling-ready application workflow has been implemented and
 tested.

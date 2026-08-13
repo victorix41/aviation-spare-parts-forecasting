@@ -20,6 +20,11 @@ decision-making through an integrated workflow covering:
 - pipeline monitoring;
 - management reporting;
 - scheduling-ready execution;
+- data-quality monitoring;
+- management alerts and exception monitoring;
+- management decision audit trails;
+- management decision analytics;
+- governance and assurance monitoring;
 - production-readiness validation.
 
 The system is designed as a **decision-support platform**. It does not
@@ -37,7 +42,13 @@ The application operates under the following controls:
 - forecasts are advisory;
 - agentic AI recommendations are advisory;
 - evidence and assurance checks are required;
-- operational decisions remain the responsibility of authorised personnel.
+- operational decisions remain the responsibility of authorised personnel;
+- management decisions recorded in the platform create audit records only;
+- recording an Accepted, Deferred or Rejected decision does not execute
+  an operational action;
+- management decision records are retained separately for traceability;
+- production-readiness assurance includes data-quality, agent-assurance
+  and management decision-audit checks.
 
 ## 3. Technology Stack
 
@@ -75,6 +86,7 @@ aviation-spare-parts-forecasting/
 ├── src/
 │   ├── agents/
 │   ├── analytics/
+│   ├── audit/
 │   ├── dashboards/
 │   ├── data/
 │   ├── forecasting/
@@ -218,12 +230,49 @@ The detailed result is written to:
 outputs/reports/production_readiness_summary.json
 ```
 
-## 12. Important Outputs
+## 12. Management Decision Governance
+
+The platform provides a controlled management decision-audit capability
+for assured agent recommendations.
+
+Authorised management users may record a recommendation as:
+
+- Accepted
+- Deferred
+- Rejected
+
+A decision reason is required.
+
+Recorded management decisions are audit records only. Recording a
+decision does not:
+
+- create or approve a purchase order;
+- update inventory;
+- approve expenditure;
+- execute an operational action; or
+- replace an authorised engineering, quality, procurement, finance or
+  operational approval.
+
+Management decision records are retained in the management audit
+database for traceability and decision analytics.
+
+The management decision analytics capability provides visibility of:
+
+- total recorded decisions;
+- Accepted, Deferred and Rejected decisions;
+- parts reviewed;
+- recommendations reviewed;
+- decisions by management role;
+- decisions by recommendation priority; and
+- recent management decisions.
+
+## 13. Important Outputs
 
 Key generated outputs include:
 
 ```text
 database/aviation_spares.duckdb
+database/management_audit.duckdb
 
 outputs/reports/full_pipeline_summary.json
 outputs/reports/scheduled_job_summary.json
@@ -236,7 +285,7 @@ outputs/logs/
 Generated operational data, databases and reports should not be
 committed to Git unless explicitly required.
 
-## 13. Release Status
+## 14. Release Status
 
 The application has completed:
 
@@ -255,8 +304,17 @@ The application has completed:
 - Phase 4.6 — Scheduled-job monitoring and concurrency hardening
 - Phase 4.7 — Production-readiness validation
 - Phase 5 — Release documentation and handover
+- Phase 6.1 — Management dashboard enhancement
+- Phase 6.2 — Forecast explainability
+- Phase 6.3 — Agent advisory traceability
+- Phase 6.4 — Configurable management alerts and exceptions
+- Phase 6.5 — Data-quality monitoring
+- Phase 6.6 — Management decision audit trail
+- Phase 6.7 — Management decision analytics
+- Phase 6.8 — Production readiness and governance assurance
+- Phase 6.9 — Final documentation and project closure
 
-## 14. Release
+## 15. Release
 
 Target release:
 
@@ -264,5 +322,14 @@ Target release:
 v1.0.0
 ```
 
-This release represents the first production-readiness-validated version
-of the aviation spare-parts forecasting and decision-support platform.
+This release represents the production-readiness-validated version of
+the aviation spare-parts forecasting, agentic advisory and governed
+management decision-support platform.
+
+The platform provides forecasting, inventory optimisation, agentic
+advisory, management alerts, decision auditing, decision analytics,
+data-quality monitoring and production-readiness assurance while
+maintaining mandatory human oversight.
+
+The platform does not perform automatic purchasing, inventory
+write-back, financial approval or operational execution.

@@ -83,7 +83,82 @@ Controls include:
 - evidence required;
 - final assurance required.
 
-## 10. Concurrent-Execution Control
+## 10. Management Decision Governance
+
+The platform provides a controlled mechanism for recording management
+review of assured recommendations.
+
+Permitted management decision states are:
+
+- Accepted
+- Deferred
+- Rejected
+
+A management decision must include a decision reason.
+
+An Accepted decision means that the recommendation has been accepted for
+management decision-support purposes only.
+
+It does not constitute:
+
+- purchase-order approval;
+- expenditure approval;
+- inventory authorisation;
+- engineering approval;
+- airworthiness approval;
+- quality approval; or
+- operational execution.
+
+Recording a management decision creates an audit record only.
+
+Human management authority remains outside the automated analytical and
+agentic components of the platform.
+
+## 11. Management Decision Audit Trail
+
+Management decisions are retained in a dedicated management audit
+database.
+
+The audit trail supports traceability of information including:
+
+- audit identifier;
+- recording timestamp;
+- recommendation identifier;
+- spare-part number;
+- advisory agent;
+- target management role;
+- recommendation type;
+- recommendation priority;
+- assurance status;
+- forecast confidence;
+- management decision;
+- decision reason;
+- reviewer reference;
+- human-approval requirement;
+- automatic-action permission; and
+- source recommendation evidence.
+
+Management decision records are retained for governance, assurance and
+management review.
+
+The audit database does not provide authority to modify operational
+systems.
+
+## 12. Decision Analytics Governance
+
+Management decision analytics are derived from recorded audit data.
+
+The analytics may be used to review decision volumes, decision outcomes,
+management roles, recommendation priorities and recent decision
+activity.
+
+Decision analytics are descriptive management information only.
+
+They do not constitute approval authority and must not trigger automatic
+procurement, inventory, financial, engineering, quality or operational
+actions.
+
+## 13. Concurrent-Execution Control
 
 Scheduled execution uses an exclusive lock.
 
@@ -93,7 +168,7 @@ lock.
 This prevents one blocked process from deleting another process's
 execution lock.
 
-## 11. Auditability
+## 14. Auditability
 
 The platform retains auditable information including:
 
@@ -104,9 +179,14 @@ The platform retains auditable information including:
 - agentic advisory outputs;
 - assurance findings;
 - management-report metadata;
-- production-readiness results.
+- production-readiness results;
+- management decision audit records;
+- management decision analytics;
+- data-quality monitoring results;
+- management alerts and exceptions;
+- governance-assurance results,
 
-## 12. Production Readiness
+## 15. Production Readiness
 
 Production readiness is validated using:
 
