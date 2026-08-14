@@ -633,7 +633,7 @@ class DashboardRepository:
         self,
         dataframe: pd.DataFrame,
     ) -> pd.DataFrame:
-        """Add Top Assembly Part Numbers to part-level data."""
+        """Add readable Top Assembly Part Numbers to part-level data."""
 
         if dataframe.empty:
             return dataframe
@@ -648,6 +648,21 @@ class DashboardRepository:
                 mapping,
                 on="part_number",
                 how="left",
+            )
+
+        if "top_assembly_part_number" in dataframe.columns:
+            dataframe[
+                "top_assembly_part_number"
+            ] = (
+                dataframe[
+                    "top_assembly_part_number"
+                ]
+                .replace(
+                    {
+                        "GENERAL":
+                            "General / Not Assembly-Specific"
+                    }
+                )
             )
 
         if (
