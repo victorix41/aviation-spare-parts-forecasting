@@ -387,7 +387,7 @@ class DashboardRepository:
         return datetime.fromtimestamp(timestamp)
 
     def load_forecast_confidence_summary(
-        self,   
+        self,
     ) -> pd.DataFrame:
         """Load forecast-confidence distribution."""
 
@@ -607,12 +607,79 @@ class DashboardRepository:
             ),
         }
 
+    def load_top_assembly_mapping(
+        self,
+    ) -> pd.DataFrame:
+        """Load Top Assembly Part Numbers by spare-part number."""
+
+        return self.query(
+            """
+            SELECT
+                part_number,
+                STRING_AGG(
+                    DISTINCT top_assembly_part_number,
+                    ', '
+                    ORDER BY top_assembly_part_number
+                ) AS top_assembly_part_number
+            FROM issue_history
+            WHERE top_assembly_part_number IS NOT NULL
+            AND TRIM(top_assembly_part_number) <> ''
+            GROUP BY part_number
+            ORDER BY part_number
+            """
+        )
+
+    def add_top_assembly_part_numbers(
+        self,
+        dataframe: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """Add Top Assembly Part Numbers to part-level data."""
+
+        if dataframe.empty:
+            return dataframe
+
+        mapping = self.load_top_assembly_mapping()
+
+        if mapping.empty:
+            dataframe = dataframe.copy()
+            dataframe["top_assembly_part_number"] = None
+        else:
+            dataframe = dataframe.merge(
+                mapping,
+                on="part_number",
+                how="left",
+            )
+
+        if (
+            "description" in dataframe.columns
+            and "top_assembly_part_number"
+            in dataframe.columns
+        ):
+            top_assembly_values = dataframe.pop(
+                "top_assembly_part_number"
+            )
+
+            insert_position = (
+                dataframe.columns.get_loc(
+                    "description"
+                )
+                + 1
+            )
+
+            dataframe.insert(
+                insert_position,
+                "top_assembly_part_number",
+                top_assembly_values,
+            )
+
+        return dataframe
+
     def load_procurement_dashboard_data(
         self,
     ) -> pd.DataFrame:
         """Load all Procurement Manager review records."""
 
-        return self.query(
+        dataframe = self.query(
             """
             SELECT
                 procurement_priority,
@@ -638,7 +705,11 @@ class DashboardRepository:
                 procurement_value_usd DESC
             """
         )
-          
+
+        return self.add_top_assembly_part_numbers(
+            dataframe
+        )
+
 
     def load_finance_kpis(self) -> dict[str, float | int]:
         """Load Finance Manager KPI values."""
@@ -694,7 +765,7 @@ class DashboardRepository:
     def load_finance_exposure(self) -> pd.DataFrame:
         """Load part-level Finance Manager exposure."""
 
-        return self.query(
+        dataframe = self.query(
             """
             SELECT
                 part_number,
@@ -712,6 +783,10 @@ class DashboardRepository:
             WHERE procurement_value_usd > 0
             ORDER BY procurement_value_usd DESC
             """
+        )
+
+        return self.add_top_assembly_part_numbers(
+            dataframe
         )
 
     def load_engineering_kpis(self) -> dict[str, int]:
@@ -778,7 +853,7 @@ class DashboardRepository:
     ) -> pd.DataFrame:
         """Load Engineering Manager review records."""
 
-        return self.query(
+        dataframe = self.query(
             """
             SELECT
                 part_number,
@@ -804,6 +879,10 @@ class DashboardRepository:
                 procurement_priority,
                 procurement_value_usd DESC
             """
+        )
+
+        return self.add_top_assembly_part_numbers(
+            dataframe
         )
 
     def load_operations_kpis(self) -> dict[str, int | float]:
@@ -872,7 +951,7 @@ class DashboardRepository:
     ) -> pd.DataFrame:
         """Load Operations Manager stock-readiness records."""
 
-        return self.query(
+        dataframe = self.query(
             """
             SELECT
                 part_number,
@@ -899,6 +978,10 @@ class DashboardRepository:
                 estimated_stockout_months,
                 part_number
             """
+        )
+
+        return self.add_top_assembly_part_numbers(
+            dataframe
         )
 
     def load_quality_kpis(self) -> dict[str, int]:
@@ -984,7 +1067,7 @@ class DashboardRepository:
     ) -> pd.DataFrame:
         """Load Quality Manager review records."""
 
-        return self.query(
+        dataframe = self.query(
             """
             SELECT
                 part_number,
@@ -1010,6 +1093,11 @@ class DashboardRepository:
                 procurement_value_usd DESC
             """
         )
+
+        return self.add_top_assembly_part_numbers(
+            dataframe
+        )
+
     def load_latest_pipeline_run(
         self,
     ) -> pd.DataFrame:
